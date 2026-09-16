@@ -1,0 +1,574 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Presentación Completa - Clase 1: Teoría de la Información</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+@media print {
+  /* 1. Página en orientación horizontal estándar */
+  @page {
+    size: A4 landscape; /* Se adapta perfectamente al PDF estándar horizontal */
+    margin: 0;
+  }
+
+  /* 2. Desactivar fondos oscuros de pantalla y permitir flujo natural */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    display: block !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* 3. Desactivar el centrado flotante absoluto y wrappers */
+  .global-presentation-wrapper,
+  .presentation-container {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* 4. Ocultar botones de navegación */
+  .controls {
+    display: none !important;
+  }
+
+  /* 5. Forzar cada diapositiva a ocupar exactamente 1 hoja completa (16:9) */
+  .slide {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    box-sizing: border-box !important;
+    padding: 35px 50px 45px 50px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background-color: #f5f8fa !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: hidden !important;
+  }
+
+  /* 6. Evitar que el contenido interno se corte */
+  .content-container {
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 1 !important;
+  }
+
+  /* Ajuste de escala en imágenes/diagramas para que no empujen el footer */
+  .image-container svg {
+    max-width: 90% !important;
+    height: auto !important;
+  }
+
+  .formula-box {
+    margin: 8px auto !important;
+    padding: 8px !important;
+  }
+
+  /* 7. Evitar hoja en blanco final */
+  .slide:last-of-type {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+}
+</style>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0b1d3a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .presentation-container {
+            position: relative;
+            width: 960px;
+            height: 540px;
+        }
+        .slide {
+            display: none;
+            width: 960px;
+            height: 540px;
+            background-color: #f5f8fa;
+            border-radius: 12px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 45px 55px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            flex-direction: column;
+        }
+        .slide.active {
+            display: flex;
+        }
+        .header {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 32px;
+            color: #0066cc;
+            font-weight: 600;
+        }
+        .content-container {
+            width: 100%;
+            flex: 1;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .content-container ul {
+            list-style: none;
+        }
+        .content-container > ul > li {
+            font-size: 19px;
+            color: #222;
+            margin-bottom: 18px;
+            line-height: 1.5;
+            position: relative;
+            padding-left: 25px;
+        }
+        .content-container > ul > li::before {
+            content: "•";
+            color: #0066cc;
+            font-size: 26px;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+        .content-container li strong {
+            color: #000;
+        }
+        .content-container .sub-list {
+            margin-top: 6px;
+            margin-left: 20px;
+            list-style: none;
+        }
+        .content-container .sub-list li {
+            font-size: 17px;
+            color: #444;
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 15px;
+        }
+        .content-container .sub-list li::before {
+            content: "-";
+            color: #0066cc;
+            position: absolute;
+            left: 0;
+        }
+        .formula-box {
+            background-color: #eaeff3;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 12px auto;
+            font-size: 20px;
+            max-width: 80%;
+        }
+        .slide-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+        .slide-table th, .slide-table td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            text-align: left;
+        }
+        .slide-table th {
+            background-color: #eaeff3;
+            font-weight: bold;
+        }
+        .image-container {
+            text-align: center;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            padding: 0 55px;
+            font-style: italic;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #004da0;
+        }
+        .counter {
+            color: white;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+
+        <div class="slide active">
+            <div class="header" style="text-align: center; border-bottom: none; margin-top: 40px;">
+                <h1 style="font-size: 42px; margin-bottom: 20px;">Teoría de la Información y la Comunicación</h1>
+                <h2 style="color: #444; font-size: 26px; font-weight: 400;">Clase 1 - Unidad I</h2>
+            </div>
+            <div class="content-container" style="text-align: center; margin-top: 40px;">
+                <p style="font-size: 18px; color: #555; margin-bottom: 10px;">Ingeniería Informática</p>
+                <p style="font-size: 16px; color: #666;">Facultad de Ingeniería, Universidad Nacional de Mar del Plata</p>
+            </div>
+            <div class="footer">Unidad I: La teoría de la información y la comunicación.</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>Perspectiva Histórica</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>El problema de la comunicación y el manejo de información no es nuevo en la historia humana.</li>
+                    <li>Sin embargo, recién en la década de **1940**, el matemático e ingeniero estadounidense **Claude Shannon (1916-2001)** logra formalizarlo de manera estrictamente matemática.</li>
+                    <li>Su trabajo sentó las bases esenciales para el desarrollo de la informática actual, las telecomunicaciones y el almacenamiento digital de datos.</li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>¿Qué es la Información?</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>Para esta disciplina, **información es todo evento con cierto grado de incertidumbre**.</li>
+                    <li>Un evento que no es compartido entre un emisor y un receptor a través de un mensaje carece de sentido práctico, independientemente de la información teórica que contenga.</li>
+                    <li>**Equivalencia fundamental:** El evento y el mensaje asociado contienen exactamente la misma cantidad de información. Debido a esto, podemos hablar indistintamente de "evento" o de "mensaje".</li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>El Proceso de Comunicación</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>La comunicación es el proceso físico o lógico mediante el cual un mensaje se transmite desde un **Emisor** hacia un **Receptor**.</li>
+                    <li>Para que la comunicación se considere efectiva y real, **el mensaje debe contener información nueva** (es decir, aportar conocimiento o reducir la incertidumbre del receptor).</li>
+                    <li>Si el receptor ya conoce con absoluta certeza el contenido del mensaje antes de que llegue, la comunicación no aporta información.</li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>Modelo General de un Sistema de Comunicación</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>El esquema de Shannon desglosa el camino que recorre la información superando las perturbaciones del canal:</li>
+                    <li class="image-container">
+                        <svg width="750" height="180" viewBox="0 0 750 180" style="background:#fff; border-radius:8px; padding:10px; border:1px solid #ccc;">
+                            <rect x="20" y="50" width="90" height="40" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="33" y="75" font-size="12" font-weight="bold" fill="#0066cc">Fuente / Emisor</text>
+
+                            <rect x="160" y="50" width="90" height="40" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="175" y="75" font-size="12" font-weight="bold" fill="#0066cc">Transmisor</text>
+
+                            <rect x="300" y="50" width="100" height="40" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="333" y="75" font-size="12" font-weight="bold" fill="#0066cc">Canal</text>
+
+                            <rect x="450" y="50" width="90" height="40" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="465" y="75" font-size="12" font-weight="bold" fill="#0066cc">Receptor</text>
+
+                            <rect x="590" y="50" width="90" height="40" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="605" y="75" font-size="12" font-weight="bold" fill="#0066cc">Destinatario</text>
+
+                            <rect x="300" y="120" width="100" height="35" rx="4" fill="#ffeaea" stroke="#ff3333" stroke-width="1.5"/>
+                            <text x="312" y="142" font-size="11" font-weight="bold" fill="#ff3333">Fuente de Ruido</text>
+
+                            <line x1="110" y1="70" x2="160" y2="70" stroke="#555" stroke-width="2"/>
+                            <polygon points="160,70 152,65 152,75" fill="#555"/>
+                            <text x="115" y="62" font-size="10" fill="#666">Mensaje</text>
+
+                            <line x1="250" y1="70" x2="300" y2="70" stroke="#555" stroke-width="2"/>
+                            <polygon points="300,70 292,65 292,75" fill="#555"/>
+                            <text x="253" y="62" font-size="10" fill="#666">Señal</text>
+
+                            <line x1="400" y1="70" x2="450" y2="70" stroke="#555" stroke-width="2"/>
+                            <polygon points="450,70 442,65 442,75" fill="#555"/>
+                            <text x="403" y="62" font-size="10" fill="#666">Señal Rec.</text>
+
+                            <line x1="540" y1="70" x2="590" y2="70" stroke="#555" stroke-width="2"/>
+                            <polygon points="590,70 582,65 582,75" fill="#555"/>
+                            <text x="545" y="62" font-size="10" fill="#666">Mensaje</text>
+
+                            <line x1="350" y1="120" x2="350" y2="90" stroke="#ff3333" stroke-width="1.5" stroke-dasharray="3"/>
+                            <polygon points="350,90 346,98 354,98" fill="#ff3333"/>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+          <div class="slide">
+                <div class="header">
+                    <h1>El Concepto Formal de Información <span class="badge">CLASE</span></h1>
+                    <h2>Incertidumbre, Eventos y Mensajes</h2>
+                </div>
+                <div class="content-container">
+                    <p><strong>Definición Matemática:</strong> Para nosotros información es todo evento con cierto grado de incertidumbre. La teoría de la Información no presta atención a los aspectos semánticos o de utilidad del mensaje.</p>
+                    <p><strong>Intercambio Unívoco:</strong> Un evento no compartido por un emisor y un receptor a través de un mensaje, no tiene sentido así contenga información.</p>
+                    <p><strong>Equivalencia de Contenido:</strong> Evento y mensaje contienen la misma información. Podemos hablar indistintamente de evento o mensaje.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+
+            <div class="slide">
+                <div class="header">
+                    <h1>¿Cómo se mide la Información?</h1>
+                </div>
+                <div class="content-container">
+                    <ul>
+                        <li>Intuitivamente, la cantidad de información aportada por un evento debe depender directamente de su probabilidad de ocurrencia:
+                            <ul class="sub-list">
+                                <li>Si un evento es **muy seguro (alta probabilidad)**, su ocurrencia aporta **poca información**.</li>
+                                <li>Si un evento es **sorpresivo o improbable (baja probabilidad)**, su ocurrencia aporta **mucha información**.</li>
+                            </ul>
+                        </li>
+                        <li>Por lo tanto, la cantidad de información \(I(s_i)\) es una función inversamente proporcional a su probabilidad \(P(s_i)\).</li>
+                    </ul>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Cuantificación Logarítmica de la Información <span class="badge">CLASE</span></h1>
+                    <h2>La Medida de Shannon</h2>
+                </div>
+                <div class="content-container">
+                    <p>Sea \(E\) un evento cuya probabilidad de ocurrencia es \(P(E)\). Cuando ocurre, decimos que se recibe la siguiente cantidad:</p>
+                    <div class="formula-box">\(I(E)=\log_{r}\left(\frac{1}{P(E)}\right)\) unidades de información</div>
+                    <p><strong>Nota sobre la base:</strong> Donde \(r\) es la base del logaritmo. Salvo que se informe lo contrario, toda vez que se mencione la función \(\log\) la base será \(r=2\).</p>
+                    <p><strong>Relación Inversa Fundamental:</strong> Si \(P(s_1) \ge P(s_2)\) entonces \(I(s_1) \le I(s_2)\). Si la Probabilidad de un suceso es mayor, la información aportada será menor. Un evento seguro (\(P(E)=1\)) aporta \(I(E)=0\).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Unidades de Medida y Axiomas <span class="badge">CLASE</span></h1>
+                    <h2>Bits, Nats y Hartley</h2>
+                </div>
+                <div class="content-container">
+                    <table class="slide-table">
+                        <thead>
+                            <tr><th>Base logarítmica (\(r\))</th><th>Unidad de Información resultante</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Con \(r = 2\)</td><td><strong>bits</strong></td></tr>
+                            <tr><td>Con \(r = n\)</td><td><strong>nats</strong></td></tr>
+                            <tr><td>Con \(r = 10\)</td><td><strong>hartleys</strong></td></tr>
+                        </tbody>
+                    </table>
+                    <p><strong>Condición de No Negatividad:</strong> Se define bajo las restricciones operacionales fundamentales \(\frac{1}{P(E)}\ge0\) y \(0\le P(X)\le1\). La información no es negativa.</p>
+                    <p><strong>Axioma de Aditividad:</strong> La propiedad se verifica como \(I(s_1,s_2)=I(s_1)+I(s_2)\) solo si los símbolos \(s_1\) y \(s_2\) son independientes entre sí.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Ejemplo Práctico: Espacios Estadísticos Discretos <span class="badge">CLASE</span></h1>
+                    <h2>El Experimento del Dado de 6 Caras</h2>
+                </div>
+                <div class="content-container">
+                    <p>Tenemos un dado de seis caras y calculamos la cantidad de información de los siguientes eventos:</p>
+                    <p class="sub-p">¿El resultado fue par?: En este caso \(P(x)=\frac{1}{2}\) e \(I(x)=\log(2)=1\) bit.</p>
+                    <p class="sub-p">¿El resultado fue un número específico entre 1 y 6?: En este caso \(P(x)=1/6\) e \(I(x)=\log(1/6)=2.58\) bits.</p>
+                    <p><strong>Diferenciación Conceptual:</strong> En esta asignatura **bit** es la unidad de información y **binits** serán los dígitos binarios representados en una memoria. Como la información de \(1/6\) es de \(2.58\) bits, el número mínimo de representación en binits enteros reales requeridos será 3.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Mapeo Lógico de la Codificación <span class="badge">CLASE</span></h1>
+                    <h2>Alfabeto Fuente y Alfabeto Código</h2>
+                </div>
+                <div class="content-container">
+                    <p>Un mensaje se escribe utilizando un "alfabeto fuente" y lo codificaremos usando símbolos de un "alfabeto código". Las secuencias asignadas constituyen las "palabras código".</p>
+                    <p><strong>Código Fijo Exitoso:</strong> Representación fija de 4 posiciones binarias para dígitos \(0-9\). Permite codificar y decodificar perfectamente basta con tomar cualquier secuencia de a 4 y usar la tabla (ej. \(05\rightarrow00000101\)).</p>
+                    <p><strong>Código Variable Ambigüo:</strong> Con la asignación \(S_1=0, S_2=01, S_3=001, S_4=111\), la tira recibida \(111001\) colapsa la interpretación: puede ser la secuencia de mensajes \(S_4 S_3\) o bien como \(S_4 S_1 S_1 S_2\). Podemos codificar, pero no decodificar.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>¿Qué es un Código?</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>Un **código** es un sistema de reglas que permite transformar un conjunto de símbolos de un alfabeto original (fuente) en secuencias de un alfabeto secundario (generalmente binario).</li>
+                    <li>El objetivo principal de la codificación en esta materia es proponer reglas óptimas y eficientes que permitan:
+                        <ul class="sub-list">
+                            <li>**Codificar:** Convertir el mensaje de forma unívoca.</li>
+                            <li>**Decodificar:** Reconstruir fielmente el mensaje original a partir de la secuencia codificada recibida.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>Ejemplo 1: Representación Binaria Fija</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>Si queremos representar los 10 dígitos decimales \((0-9)\) utilizando bloques de longitud fija de símbolos binarios, necesitamos bloques de al menos 4 posiciones:</li>
+                    <table class="slide-table">
+                        <tr><th>Dígito Decimal</th><th>Representación Binaria</th><th>Dígito Decimal</th><th>Representación Binaria</th></tr>
+                        <tr><td>0</td><td>0000</td><td>5</td><td>0101</td></tr>
+                        <tr><td>1</td><td>0001</td><td>6</td><td>0110</td></tr>
+                        <tr><td>2</td><td>0010</td><td>7</td><td>0111</td></tr>
+                        <tr><td>3</td><td>0011</td><td>8</td><td>1000</td></tr>
+                        <tr><td>4</td><td>0100</td><td>9</td><td>1001</td></tr>
+                    </table>
+                    <li style="margin-top:15px;">Cualquier mensaje compuesto por estos dígitos se puede codificar y decodificar tomando secuencias agrupadas rígidamente de a 4 bits. Por ejemplo:
+                        <div class="formula-box">\(05 \longrightarrow 00000101 \longrightarrow 0000 \quad 0101 \longrightarrow 05\)</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+        <div class="slide">
+            <div class="header">
+                <h1>Ejemplo 2: Código de Longitud Variable</h1>
+            </div>
+            <div class="content-container">
+                <ul>
+                    <li>Consideremos ahora un esquema donde las palabras del código no tienen el mismo tamaño:</li>
+                    <table class="slide-table" style="max-width: 60%; margin: 10px auto;">
+                        <tr><th>Símbolo Mensaje</th><th>Palabra Código</th></tr>
+                        <tr><td>\(S_1\)</td><td>0</td></tr>
+                        <tr><td>\(S_2\)</td><td>01</td></tr>
+                        <tr><td>\(S_3\)</td><td>001</td></tr>
+                        <tr><td>\(S_4\)</td><td>111</td></tr>
+                    </table>
+                    <li style="margin-top: 15px;">**El problema de la ambigüedad:** Notemos qué sucede al recibir la secuencia binaria `111001`. Podría decodificarse de dos maneras distintas y válidas:
+                        <ul class="sub-list">
+                            <li>Como la secuencia de símbolos: **\(S_4 S_3\)** (ya que \(111 = S_4\) y \(001 = S_3\)).</li>
+                            <li>Como la secuencia de símbolos: **\(S_4 S_1 S_1 S_2\)** (ya que \(111 = S_4\), \(0 = S_1\), \(0 = S_1\) y \(1 = \text{error en interpretación/fusión}\)).</li>
+                        </ul>
+                    </li>
+                    <li>Esto demuestra la importancia de diseñar códigos **unívocamente decodificables** (como los códigos prefijo).</li>
+                </ul>
+            </div>
+            <div class="footer">Teoría de la Información y la Comunicación - FI UNMDP</div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="changeSlide(-1)">Anterior</button>
+        <span class="counter" id="slide-counter">Diapositiva 1 de 11</span>
+        <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+
+        function showSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (index + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = `Diapositiva ${currentSlide + 1} de ${slides.length}`;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Navegación por teclado con flechas izquierda/derecha
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+    </script>
+</body>
+</html>

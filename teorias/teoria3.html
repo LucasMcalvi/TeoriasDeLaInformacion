@@ -1,0 +1,1006 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Teoría de la Información - Propiedades de los Códigos</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @media print {
+
+            /* 1. Página en orientación horizontal estándar */
+            @page {
+                size: A4 landscape;
+                /* Se adapta perfectamente al PDF estándar horizontal */
+                margin: 0;
+            }
+
+            /* 2. Desactivar fondos oscuros de pantalla y permitir flujo natural */
+            html,
+            body {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                display: block !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            /* 3. Desactivar el centrado flotante absoluto y wrappers */
+            .global-presentation-wrapper,
+            .presentation-container {
+                position: static !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+
+            /* 4. Ocultar botones de navegación */
+            .controls {
+                display: none !important;
+            }
+
+            /* 5. Forzar cada diapositiva a ocupar exactamente 1 hoja completa (16:9) */
+            .slide {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                box-sizing: border-box !important;
+                padding: 35px 50px 45px 50px !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background-color: #f5f8fa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                overflow: hidden !important;
+            }
+
+            /* 6. Evitar que el contenido interno se corte */
+            .content-container {
+                width: 100% !important;
+                max-height: none !important;
+                overflow: visible !important;
+                flex: 1 !important;
+            }
+
+            /* Ajuste de escala en imágenes/diagramas para que no empujen el footer */
+            .image-container svg {
+                max-width: 90% !important;
+                height: auto !important;
+            }
+
+            .formula-box {
+                margin: 8px auto !important;
+                padding: 8px !important;
+            }
+
+            /* 7. Evitar hoja en blanco final */
+            .slide:last-of-type {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+        }
+    </style>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0b1d3a;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CONTENEDOR FLOTANTE FIJADO EN EL CENTRO EXACTO DEL NAVEGADOR */
+        .global-presentation-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 960px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .presentation-container {
+            position: relative;
+            width: 960px;
+            height: 540px;
+        }
+
+        .slide {
+            display: none;
+            width: 960px;
+            height: 540px;
+            background-color: #f5f8fa;
+            border-radius: 12px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 40px 60px 60px 60px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            flex-direction: column;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        .header {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #0066cc;
+            font-weight: 600;
+        }
+
+        .header h2 {
+            font-size: 15px;
+            color: #555;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        .content-container {
+            width: 100%;
+            flex: 1;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .content-container p {
+            font-size: 18px;
+            color: #222;
+            margin-bottom: 12px;
+            line-height: 1.45;
+            text-align: left;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .content-container p::before {
+            content: "•";
+            color: #0066cc;
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+
+        .content-container p.no-bullet::before {
+            content: "";
+            padding-left: 0;
+        }
+
+        .content-container p.no-bullet {
+            padding-left: 0;
+        }
+
+        .content-container p strong {
+            color: #000;
+        }
+
+        .content-container .sub-p {
+            font-size: 16px;
+            color: #444;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding-left: 45px;
+            position: relative;
+        }
+
+        .content-container .sub-p::before {
+            content: "-";
+            color: #0066cc;
+            position: absolute;
+            left: 25px;
+            top: 0;
+        }
+
+        .formula-box {
+            background-color: #eaeff3;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 10px auto;
+            font-size: 19px;
+            width: 100%;
+            max-width: 85%;
+            color: #000;
+        }
+
+        .slide-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px auto;
+            font-size: 14px;
+            background: #fff;
+            max-width: 90%;
+        }
+
+        .slide-table th,
+        .slide-table td {
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            text-align: left;
+        }
+
+        .slide-table th {
+            background-color: #eaeff3;
+            font-weight: bold;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            padding: 0 60px;
+            font-style: italic;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            width: 960px;
+        }
+
+        .btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #004da0;
+        }
+
+        .counter {
+            color: white;
+            font-size: 16px;
+        }
+
+        .badge {
+            background: #0066cc;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            vertical-align: middle;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="global-presentation-wrapper">
+
+        <div class="presentation-container">
+
+            <div class="slide active">
+                <div class="header">
+                    <h1>Codificación de la Información <span class="badge">CLASE 4</span></h1>
+                    <h2>Concepto General de Sistemas de Códigos</h2>
+                </div>
+                <div class="content-container">
+                    <p>Si tenemos un alfabeto fuente \(S\) con símbolos \(\{S_1, S_2, ..., S_q\}\), se puede definir un
+                        **código** como la correspondencia de cada secuencia posible de \(S\) a una secuencia de
+                        símbolos en otro alfabeto \(X = \{x_1, x_2, ..., x_p\}\).</p>
+                    <p>\(S\) recibe el nombre de **alfabeto fuente** y \(X\) el de **alfabeto código**. El número de
+                        símbolos de ambos conjuntos puede ser diferente.</p>
+                    <p><strong>Ejemplo de mapeo genérico:</strong> Con \(S = \{S_1, S_2, ..., S_5\}\) y \(X = \{x_1,
+                        x_2, ..., x_{10}\}\), una regla podría ser:
+                    <div class="formula-box">\(S_1 \rightarrow x_3 \quad | \quad S_2 S_4 S_5 \rightarrow x_1 x_2 x_8 x_5
+                        \quad | \quad S_3 S_3 S_4 \rightarrow x_2 x_3 x_1\)</div>
+                    </p>
+                    <p>Esta definición es genérica y abarca tanto códigos útiles como inútiles. Un código será **útil**
+                        solo si es posible realizar el proceso inverso (decodificación).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Restricción Inicial: Códigos Bloque <span class="badge">CLASE 4</span></h1>
+                    <h2>Asignación Fija de Secuencias Lógicas</h2>
+                </div>
+                <div class="content-container">
+                    <p>La primera restricción operacional consiste en obtener un **código bloque**: este asigna a cada
+                        símbolo \(S_i\) del alfabeto fuente una secuencia fija del alfabeto código, denominada **palabra
+                        código**.</p>
+                    <p><strong>Caso de Estudio (Código Ambigüo):</strong> Sea \(S = \{S_1, S_2, S_3, S_4\}\) y \(X =
+                        \{x_1, x_2, x_3\}\) con el siguiente esquema:</p>
+                    <table class="slide-table" style="max-width: 50%;">
+                        <thead>
+                            <tr>
+                                <th>Símbolo Fuente</th>
+                                <th>Palabra Código</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>\(S_1\)</td>
+                                <td>\(x_3\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_2\)</td>
+                                <td>\(x_3 x_1\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_3\)</td>
+                                <td>\(x_1 x_2 x_3\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_4\)</td>
+                                <td>\(x_3 x_1\)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Este código bloque permite codificar, pero **no decodificar**, debido a que los símbolos
+                        distintos \(S_2\) y \(S_4\) comparten exactamente la misma palabra código.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Códigos No Singulares <span class="badge">CLASE 4</span></h1>
+                    <h2>Distinción Elemental de Palabras Código</h2>
+                </div>
+                <div class="content-container">
+                    <p>Si exigimos que un código bloque tenga todas sus palabras código distintas para cada símbolo
+                        fuente individual, estamos en presencia de un **código no singular**.</p>
+                    <p class="no-bullet">A continuación se analizan dos esquemas de codificación de ejemplo:</p>
+                    <div style="display: flex; gap: 20px; justify-content: center; width: 100%;">
+                        <table class="slide-table" style="margin: 5px 0; max-width: 45%;">
+                            <thead>
+                                <tr>
+                                    <th>Símbolo</th>
+                                    <th>Esquema 1 (Binario)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>\(S_1\)</td>
+                                    <td>\(0\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_2\)</td>
+                                    <td>\(11\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_3\)</td>
+                                    <td>\(00\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_4\)</td>
+                                    <td>\(01\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="slide-table" style="margin: 5px 0; max-width: 45%;">
+                            <thead>
+                                <tr>
+                                    <th>Símbolo</th>
+                                    <th>Esquema 2 (Ternario)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>\(S_1\)</td>
+                                    <td>\(x_3\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_2\)</td>
+                                    <td>\(x_3 x_3\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_3\)</td>
+                                    <td>\(x_1 x_2 x_1\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_4\)</td>
+                                    <td>\(x_3 x_1\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 10px;"><strong>Nota Crítica:</strong> En el primer caso, si consideramos la
+                        secuencia binaria recibida `0011`, esta podría surgir de la combinación \(S_3 S_2\) o bien de
+                        \(S_1 S_1 S_2\). Esto demuestra que ser no singular **no es suficiente** para garantizar la
+                        decodificación.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Códigos Unívocamente Decodificables <span class="badge">CLASE 4</span></h1>
+                    <h2>No Singularidad Extendida de Orden n</h2>
+                </div>
+                <div class="content-container">
+                    <p>Para que un código bloque se pueda decodificar con éxito, es preciso que sea no singular para
+                        cualquier **extensión de orden n**, siendo \(n\) un valor finito.</p>
+                    <p>A este tipo de esquemas se los denomina **unívocamente decodificables**, lo que asegura que dos
+                        secuencias distintas de la fuente den lugar a tiras binarias de salida totalmente diferentes.
+                    </p>
+                    <p class="no-bullet">Ejemplo de extensión de orden \(n=2\) para \(S = \{S_1, S_2, S_3, S_4\}\) y \(X
+                        = \{0, 1\}\):</p>
+                    <table class="slide-table" style="font-size: 13px; margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Fuente</th>
+                                <th>Código</th>
+                                <th>Fuente</th>
+                                <th>Código</th>
+                                <th>Fuente</th>
+                                <th>Código</th>
+                                <th>Fuente</th>
+                                <th>Código</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>\(S_1 S_1\)</td>
+                                <td>\(00\)</td>
+                                <td>\(1010\)</td>
+                                <td>\(011\)</td>
+                                <td>\(S_3 S_1\)</td>
+                                <td>\(000\)</td>
+                                <td>\(S_4 S_1\)</td>
+                                <td>\(010\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_1 C_2\)</td>
+                                <td>\(011\)</td>
+                                <td>\(S_2 S_2\)</td>
+                                <td>\(1111\)</td>
+                                <td>\(S_3 S_2\)</td>
+                                <td>\(0011\)</td>
+                                <td>\(S_4 S_2\)</td>
+                                <td>\(0111\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_1 S_3\)</td>
+                                <td>\(000\)</td>
+                                <td>\(S_2 S_3\)</td>
+                                <td>\(1100\)</td>
+                                <td>\(S_3 S_3\)</td>
+                                <td>\(0000\)</td>
+                                <td>\(S_4 S_3\)</td>
+                                <td>\(0100\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_1 S_4\)</td>
+                                <td>\(001\)</td>
+                                <td>\(S_2 S_4\)</td>
+                                <td>\(1101\)</td>
+                                <td>\(S_3 S_4\)</td>
+                                <td>\(0001\)</td>
+                                <td>\(S_4 S_4\)</td>
+                                <td>\(0101\)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Análisis Comparativo de Longitudes <span class="badge">CLASE 4</span></h1>
+                    <h2>Códigos de Bloque de Tamaño Fijo y Variable</h2>
+                </div>
+                <div class="content-container">
+                    <p>Que un código sea unívoco implica que es físicamente posible determinar el final de cada palabra
+                        dentro de una secuencia continua de símbolos.</p>
+                    <p>Todo código bloque no singular cuyas palabras tengan exactamente la **misma longitud** será
+                        unívocamente decodificable de forma directa, aunque no es una condición obligatoria.</p>
+                    <table class="slide-table" style="max-width: 75%;">
+                        <thead>
+                            <tr>
+                                <th>Símbolo Fuente</th>
+                                <th>Código A (Fijo)</th>
+                                <th>Código B (Coma)</th>
+                                <th>Código C (Variable Unívoco)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>\(S_1\)</td>
+                                <td>\(00\)</td>
+                                <td>\(0\)</td>
+                                <td>\(0\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_2\)</td>
+                                <td>\(01\)</td>
+                                <td>\(10\)</td>
+                                <td>\(01\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_3\)</td>
+                                <td>\(10\)</td>
+                                <td>\(110\)</td>
+                                <td>\(011\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_4\)</td>
+                                <td>\(11\)</td>
+                                <td>\(1110\)</td>
+                                <td>\(0111\)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 8px;">Los tres esquemas son no singulares y unívocos. El **Código A** es de
+                        longitud fija, el **Código B** es un código coma estándar, y el **Código C** es un esquema
+                        variable unívoco.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Códigos Instantáneos y Propiedad de Prefijo <span class="badge">CLASE 4</span></h1>
+                    <h2>Decodificación Sin Retardos Temporales</h2>
+                </div>
+                <div class="content-container">
+                    <p>Se denomina **prefijo** de una palabra \(X_i = x_{i1} x_{i2} ... x_{im}\) a cualquier secuencia
+                        truncada inicial \((x_{i1}, x_{i2}, ..., x_{ij})\) donde \(j \le m\). Por ejemplo, la palabra
+                        `0111` tiene como prefijos a `0111`, `011`, `01` y `0`.</p>
+                    <p>Un código unívocamente decodificable es **instantáneo** cuando permite recuperar las palabras de
+                        una secuencia sin precisar el conocimiento de los símbolos que las suceden en el tiempo.</p>
+                    <p><strong>Condición Necesaria y Suficiente:** Un código es instantáneo si y solo si **ninguna
+                            palabra coincide con el prefijo de otra**. La regla de diseño consiste en evitar la
+                            existencia de prefijos compartidos.</p>
+                    <div style="display: flex; gap: 20px; justify-content: center; width: 100%;">
+                        <table class="slide-table" style="margin: 5px 0; max-width: 70%;">
+                            <thead>
+                                <tr>
+                                    <th>Símbolo</th>
+                                    <th>Código A (No Instantáneo)</th>
+                                    <th>Código B (Instantáneo)</th>
+                                    <th>Código C (No Instantáneo)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>\(S_1\)</td>
+                                    <td>\(0\)</td>
+                                    <td>\(00\)</td>
+                                    <td>\(0\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_2\)</td>
+                                    <td>\(01\)</td>
+                                    <td>\(10\)</td>
+                                    <td>\(01\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_3\)</td>
+                                    <td>\(10\)</td>
+                                    <td>\(110\)</td>
+                                    <td>\(011\)</td>
+                                </tr>
+                                <tr>
+                                    <td>\(S_4\)</td>
+                                    <td>\(11\)</td>
+                                    <td>\(1110\)</td>
+                                    <td>\(0111\)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Árbol Estructural de Clasificación de Códigos <span class="badge">CLASE 4</span></h1>
+                    <h2>Resumen Taxonómico de la Unidad III</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet" style="margin-bottom: 5px;">Mapeo de las restricciones y propiedades lógicas de
+                        las fuentes discretas:</p>
+                    <div class="image-container" style="margin-top: 5px;">
+                        <svg width="650" height="180" viewBox="0 0 650 180"
+                            style="background:#fff; border-radius:6px; border:1px solid #ccc; padding: 5px;">
+                            <rect x="10" y="70" width="70" height="30" rx="4" fill="#eaeff3" stroke="#0066cc"
+                                stroke-width="2" />
+                            <text x="23" y="89" font-size="12" font-weight="bold">Códigos</text>
+
+                            <line x1="80" y1="85" x2="130" y2="45" stroke="#555" stroke-width="1.5" />
+                            <line x1="80" y1="85" x2="130" y2="125" stroke="#555" stroke-width="1.5" />
+
+                            <rect x="130" y="30" width="80" height="25" rx="4" fill="#f2f2f2" stroke="#666" />
+                            <text x="142" y="46" font-size="11">No Bloque</text>
+                            <rect x="130" y="110" width="80" height="25" rx="4" fill="#eaeff3" stroke="#0066cc"
+                                stroke-width="1.5" />
+                            <text x="152" y="126" font-size="11" font-weight="bold">Bloque</text>
+
+                            <line x1="210" y1="122" x2="260" y2="100" stroke="#555" stroke-width="1.5" />
+                            <line x1="210" y1="122" x2="260" y2="145" stroke="#555" stroke-width="1.5" />
+
+                            <rect x="260" y="85" width="80" height="25" rx="4" fill="#f2f2f2" stroke="#666" />
+                            <text x="276" y="101" font-size="11">Singular</text>
+                            <rect x="260" y="135" width="85" height="25" rx="4" fill="#eaeff3" stroke="#0066cc"
+                                stroke-width="1.5" />
+                            <text x="269" y="151" font-size="11" font-weight="bold">No Singular</text>
+
+                            <line x1="345" y1="147" x2="390" y2="125" stroke="#555" stroke-width="1.5" />
+                            <line x1="345" y1="147" x2="390" y2="162" stroke="#555" stroke-width="1.5" />
+
+                            <rect x="390" y="110" width="80" height="25" rx="4" fill="#f2f2f2" stroke="#666" />
+                            <text x="401" y="126" font-size="11">No Unívoco</text>
+                            <rect x="390" y="150" width="80" height="25" rx="4" fill="#eaeff3" stroke="#0066cc"
+                                stroke-width="1.5" />
+                            <text x="408" y="166" font-size="11" font-weight="bold">Unívoco</text>
+
+                            <line x1="470" y1="162" x2="520" y2="145" stroke="#555" stroke-width="1.5" />
+                            <line x1="470" y1="162" x2="520" y2="175" stroke="#555" stroke-width="1.5" />
+
+                            <rect x="520" y="130" width="95" height="25" rx="4" fill="#f2f2f2" stroke="#666" />
+                            <text x="527" y="146" font-size="11">No Instantáneo</text>
+                            <rect x="520" y="160" width="95" height="25" rx="4" fill="#d4edda" stroke="#28a745"
+                                stroke-width="2" />
+                            <text x="536" y="176" font-size="11" font-weight="bold" fill="#155724">Instantáneo</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>La Inecuación de Kraft <span class="badge">CLASE 5</span></h1>
+                    <h2>Condición de Existencia para Códigos Instantáneos</h2>
+                </div>
+                <div class="content-container">
+                    <p>Sea un alfabeto fuente \(S = \{S_1, S_2, ..., S_q\}\) y un alfabeto código \(X = \{x_1, x_2, ...,
+                        x_r\}\). Consideremos un código donde cada palabra posee una longitud \(l_i\).</p>
+                    <p>Establecemos que es **condición suficiente** para la existencia de al menos un código instantáneo
+                        con dichas longitudes el cumplimiento de la **Inecuación de Kraft**:</p>
+                    <div class="formula-box">\(\sum_{i=1}^{q} r^{-l_i} \le 1\)</div>
+                    <p>Donde \(r\) representa el número de símbolos de \(X\). Para el caso del alfabeto binario, la
+                        inecuación se reduce a la expresión: \(\sum_{i=1}^{q} 2^{-l_i} \le 1\).</p>
+                    <p><strong>Limitación Teórica:</strong> Esta ley condiciona exclusivamente las longitudes de las
+                        palabras y no a las palabras en sí mismas. Es una medida cuantitativa; para asegurar que sea
+                        instantáneo se debe verificar la condición de prefijo.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Verificación experimental de Kraft <span class="badge">CLASE 5</span></h1>
+                    <h2>Análisis Práctico de Cinco Casos de Estudio</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">Dada una fuente con 4 símbolos y las codificaciones binarias \(A, B, C, D, E\):
+                    </p>
+                    <table class="slide-table" style="font-size: 13px; margin-top: 5px;">
+                        <thead>
+                            <tr>
+                                <th>Símbolos</th>
+                                <th>Código A</th>
+                                <th>Código B</th>
+                                <th>Código C</th>
+                                <th>Código D</th>
+                                <th>Código E</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>\(S_1\)</td>
+                                <td>\(00\)</td>
+                                <td>\(0\)</td>
+                                <td>\(0\)</td>
+                                <td>\(0\)</td>
+                                <td>\(0\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_2\)</td>
+                                <td>\(01\)</td>
+                                <td>\(100\)</td>
+                                <td>\(10\)</td>
+                                <td>\(100\)</td>
+                                <td>\(10\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_3\)</td>
+                                <td>\(10\)</td>
+                                <td>\(110\)</td>
+                                <td>\(110\)</td>
+                                <td>\(110\)</td>
+                                <td>\(110\)</td>
+                            </tr>
+                            <tr>
+                                <td>\(S_4\)</td>
+                                <td>\(11\)</td>
+                                <td>\(111\)</td>
+                                <td>\(111\)</td>
+                                <td>\(11\)</td>
+                                <td>\(11\)</td>
+                            </tr>
+                            <tr style="background:#eaeff3; font-weight:bold;">
+                                <td>Suma Kraft</td>
+                                <td>\(1\)</td>
+                                <td>\(7/8 \le 1\)</td>
+                                <td>\(1\)</td>
+                                <td>\(1\)</td>
+                                <td>\(11/8 > 1\)</td>
+                            </tr>
+                            <tr style="font-style:italic;">
+                                <td>Resultado</td>
+                                <td>Es Inst.</td>
+                                <td>Es Inst.</td>
+                                <td>Es Inst.</td>
+                                <td>No Inst. (Hay Pref.)</td>
+                                <td>Imposible Unívoco</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 8px;">El **Código D** cumple cuantitativamente la inecuación de Kraft, pero no
+                        es instantáneo porque la palabra `0` es prefijo directo de las secuencias siguientes. El
+                        **Código E** viola la inecuación, siendo imposible construir un código unívoco con esos tamaños.
+                    </p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>La Inecuación de MacMillan <span class="badge">CLASE 5</span></h1>
+                    <h2>Extensión del Criterio para Códigos Unívocos</h2>
+                </div>
+                <div class="content-container">
+                    <p>Como los códigos unívocamente decodificables incluyen formalmente a los instantáneos, MacMillan
+                        demostró que la inecuación de Kraft es **condición necesaria y suficiente** para la existencia
+                        de un código unívoco de esas longitudes. Por lo tanto, si el código es unívoco, necesariamente
+                        debe cumplir la inecuación de Kraft-MacMillan.
+                    </p>
+                    <p><strong>Ejemplo de Aplicación (Código Trinario):</strong> Supongamos una fuente de 10 símbolos
+                        que deseamos codificar con un alfabeto código trinario (\(r=3\)) utilizando las longitudes: \(1,
+                        2, 2, 2, 2, 2, 3, 3, 3, 3\).</p>
+                    <div class="formula-box">\(\sum_{i=1}^{10} 3^{-l_i} = 3^{-1} + 5 \cdot 3^{-2} + 4 \cdot 3^{-3} =
+                        \frac{1}{3} + \frac{5}{9} + \frac{4}{27} = \frac{28}{27} > 1\)</div>
+                    <p>Como el resultado de la sumatoria es estrictamente mayor que 1, se demuestra que **no es
+                        posible** definir un código unívoco ni instantáneo bajo dicho ordenamiento.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Construcción de Códigos por Prefijos <span class="badge">CLASE 5</span></h1>
+                    <h2>Resolución de un Esquema de 9 Símbolos</h2>
+                </div>
+                <div class="content-container">
+                    <p>Consideremos una fuente de 9 símbolos con un código trinario (\(r=3\)) y longitudes: \(1, 2, 2,
+                        2, 2, 2, 3, 3, 3\). Su sumatoria verifica de forma exacta el límite combinatorio:</p>
+                    <div class="formula-box">\(\sum_{i=1}^{9} 3^{-l_i} = 3^{-1} + 5 \cdot 3^{-2} + 3 \cdot 3^{-3} =
+                        \frac{1}{3} + \frac{5}{9} + \frac{3}{27} = 1\)</div>
+                    <p>El código es aceptable. Para su construcción, se elige un prefijo de longitud 1 (el `0`),
+                        quedando obligados a adoptar los dos restantes (`1` y `2`) para derivar las palabras de longitud
+                        2.</p>
+                    <table class="slide-table" style="max-width: 75%; margin-top: 5px; font-size: 13px;">
+                        <tr>
+                            <th>Símbolo</th>
+                            <th>Palabra</th>
+                            <th>Símbolo</th>
+                            <th>Palabra</th>
+                            <th>Símbolo</th>
+                            <th>Palabra</th>
+                        </tr>
+                        <tr>
+                            <td>\(S_1\)</td>
+                            <td>`0`</td>
+                            <td>\(S_4\)</td>
+                            <td>`12`</td>
+                            <td>\(S_7\)</td>
+                            <td>`220`</td>
+                        </tr>
+                        <tr>
+                            <td>\(S_2\)</td>
+                            <td>`10`</td>
+                            <td>\(S_5\)</td>
+                            <td>`20`</td>
+                            <td>\(S_8\)</td>
+                            <td>`221`</td>
+                        </tr>
+                        <tr>
+                            <td>\(S_3\)</td>
+                            <td>`11`</td>
+                            <td>\(S_6\)</td>
+                            <td>`21`</td>
+                            <td>\(S_9\)</td>
+                            <td>`222`</td>
+                        </tr>
+                    </table>
+                    <p style="margin-top: 5px;">Se emplean únicamente cinco palabras de longitud 2, conservando la sexta
+                        secuencia disponible (`22`) como prefijo de extensión para las tres últimas palabras de longitud
+                        3.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Criterio de Optimización: Longitud Media \(L\) <span class="badge">CLASE 5</span></h1>
+                    <h2>Evaluación Métrica de Eficiencia en Bloques</h2>
+                </div>
+                <div class="content-container">
+                    <p>Un aspecto central en la codificación es establecer un criterio matemático para seleccionar el
+                        código **óptimo**. Un código puede ser evaluado por comodidad, fiabilidad frente a errores,
+                        seguridad o costo.</p>
+                    <p>En principio se adoptará la regla de **"cuanto más breve mejor"**, dado que la longitud de las
+                        palabras afecta de forma directa al almacenamiento en memoria y a la velocidad de transmisión.
+                    </p>
+                    <p>Se define formalmente la **longitud media de un código (\(L\))** como el promedio de las
+                        longitudes de sus palabras ponderadas por sus probabilidades de ocurrencia en la fuente:</p>
+                    <div class="formula-box">\(L = \sum_{i=1}^{q} P(S_i) \cdot l_i\)</div>
+                    <p>Esta expresión fundamental del valor esperado es plenamente válida tanto para las fuentes
+                        discretas de memoria nula como para los procesos dependientes de Markov.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Teorema de la Codificación para Fuentes Nulas <span class="badge">CLASE 5</span></h1>
+                    <h2>El Límite Inferior de la Entropía Relativa</h2>
+                </div>
+                <div class="content-container">
+                    <p>Un código bloque unívoco se define como **compacto** si su longitud media \(L\) es menor o igual
+                        que la longitud media de cualquier otro código unívoco aplicable a la fuente \(S\) usando el
+                        alfabeto \(X\).</p>
+                    <p>A partir de las propiedades de la Entropía y la inecuación de Kraft, Shannon demuestra el teorema
+                        fundamental de la codificación lineal discreta:</p>
+                    <div class="formula-box">\(H_r(S) \le L \quad \text{donde: } H_r(S) = \sum_{i=1}^{q} P(S_i) \log_r
+                        \left(\frac{1}{P(S_i)}\right)\)</div>
+                    <p>La longitud media \(L\) de un código instantáneo posee un límite inferior absoluto determinado
+                        por la entropía en base \(r\). Alcanza su mínimo valor si y solo si las longitudes individuales
+                        cumplen:</p>
+                    <div class="formula-box">\(l_i = \log_r \left(\frac{1}{P(S_i)}\right) \implies P(S_i) =
+                        \left(\frac{1}{r}\right)^{l_i}\)</div>
+                    <p>Dado que las longitudes \(l_i\) deben ser enteros, esta condición de código compacto perfecto
+                        exige que todas las probabilidades de la fuente sean potencias enteras inversas de la base del
+                        alfabeto código.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Ejemplo de Distribución Compacta Perfecta <span class="badge">CLASE 5</span></h1>
+                    <h2>Resolución Numérica Binaria Equiprobable</h2>
+                </div>
+                <div class="content-container">
+                    <p>Sea un alfabeto fuente \(S = \{S_1, S_2, S_3, S_4\}\) con distribución uniforme de probabilidades
+                        \(P = \{1/4, 1/4, 1/4, 1/4\}\). Calculamos la entropía binaria del sistema:</p>
+                    <div class="formula-box">\(H_2(S) = \sum_{i=1}^{4} \frac{1}{4} \log_2(4) = 4 \cdot \left(\frac{1}{4}
+                        \cdot 2\right) = 2 \text{ bits/símbolo}\)</div>
+                    <p>El teorema establece que es imposible codificar los símbolos de esta fuente mediante un código
+                        binario unívoco de longitud media inferior a 2 binits por símbolo.</p>
+                    <p>Como el alfabeto código es binario (\(r=2\)) y la probabilidad de cada suceso es \(P(S_i) =
+                        1/4\), se verifica el acoplamiento perfecto de la condición de potencia:</p>
+                    <div class="formula-box">\(1/4 = (1/2)^2 \implies \alpha_i = 2 \quad \forall i\)</div>
+                    <p>Puesto que el exponente resulta ser un entero exacto (\(\alpha_i = 2\)), el código compacto se
+                        construye utilizando palabras fijas de longitud 2: \(S_1 \rightarrow 00, S_2 \rightarrow 01, S_3
+                        \rightarrow 10, S_4 \rightarrow 11\), logrando un rendimiento del 100% donde \(L = H_2(S) = 2\).
+                    </p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de
+                    Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="changeSlide(-1)">Anterior</button>
+            <span class="counter" id="slide-counter">Diapositiva 1 de 14</span>
+            <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+
+        function showSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (index + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = `Diapositiva ${currentSlide + 1} de ${slides.length}`;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowRight') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+    </script>
+</body>
+
+</html>
