@@ -1,5 +1,6 @@
 #CODIFICACION
 import math
+import random
 def es_noSingular(codigo): #devuelve si un codigo es no singular
     return len(codigo) == len(set(codigo))
 
