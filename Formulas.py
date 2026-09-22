@@ -39,6 +39,8 @@ def GeneraPalabra (N, alfabeto, probabilidades):  #dado un int, un array alfabet
     palabra = "".join(lista_pal)
     return palabra  
 
+def Equiprobables (cant): #dada la cantidad de sucesos equiprobables calcula la entropia
+    return math.log2(cant)
 
 def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabilidades y un orden N devuelve una lista de extension N y du distribucion de probabilidades
     if N==1:
@@ -56,3 +58,6 @@ def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabil
 
     return nuevo_alf, nuevo_fdp
 
+def CalculaEntropiaMemoriaBinaria (w): #calcula entropia memoria binaria pasandole w
+    prob = [w, 1-w]
+    return CalcEntropia(prob)
