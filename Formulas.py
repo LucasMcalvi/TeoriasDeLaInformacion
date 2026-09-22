@@ -61,3 +61,34 @@ def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabil
 def CalculaEntropiaMemoriaBinaria (w): #calcula entropia memoria binaria pasandole w
     prob = [w, 1-w]
     return CalcEntropia(prob)
+def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de transicion con todas las probabilidades de pasar de un estado de origen a uno de llegada, considera probabilidades degun el simbolo anterior
+    alfabeto = []
+    mat =[]
+    for i in range(len(cadena)):
+        if cadena[i] not in alfabeto:
+            alfabeto.append(cadena[i]);
+    n=len(alfabeto);
+    mat=[[0 for i in range(n)] for j in range(n)]
+    for k in range (len(cadena)-1):
+        mat[alfabeto.index(cadena[k+1])][alfabeto.index(cadena[k])] += 1
+    #divido matriz
+    for j in range (n):
+        total_columna = sum(mat[i][j] for i in range(n))
+        for i in range (n):
+            mat[i][j] = mat[i][j]/total_columna
+
+    return alfabeto, mat ;
+
+def tienememorianula(matriz,tolerancia):
+    tienememoria=False
+    i=0
+    while (i< len(matriz) and not tienememoria):
+            j=0
+            while (j< len(matriz) and not tienememoria):
+                if (abs(matriz[i][j]-matriz[i][i]) > tolerancia):
+                    tienememoria=True
+                j+=1
+            i+=1
+    return tienememoria
+
+tolerancia = 0.1
