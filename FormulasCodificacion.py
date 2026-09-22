@@ -175,3 +175,14 @@ def generar_mensaje(N, palabras, probabilidades):
 #A random.choises le pasas la lista con las palabras, para que tenga los elementos a elegir
 # el peso de cada elemento
 # Y un k que dice cuantas elecciones realiza, en este caso N
+def clasifica(codigo):
+    if es_noSingular(codigo):
+            if es_instantaneo(codigo):
+                return "instantáneo"
+            else:
+                if es_univocamente_decodificable(codigo):
+                    return "unívoco"
+                else:
+                    return "no singular"
+    else:
+            return "bloque"
