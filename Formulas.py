@@ -149,6 +149,23 @@ def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de trans
             mat[i][j] = mat[i][j]/total_columna
 
     return alfabeto, mat ;
+#CALCULA VECTOR ESTACIONARIO
+
+def transponer(matriz):
+    return [list(fila) for fila in zip(*matriz)]
+    
+def generaVectorEstacionario(matriz,n): 
+    pi = [1/n] * n
+    for k in range(30):          # con 10 no llega a estabilizarse del todo, con 30 si
+        piNuevo = [0] * n
+        for j in range(n):                  # j = estado DESTINO
+            suma = 0
+            for i in range(n):              # i = estado ORIGEN
+                suma += pi[i] * matriz[j][i]  # matriz[destino][origen]
+            piNuevo[j] = suma
+        pi = piNuevo.copy()
+    return pi
+
 
 def tienememorianula(matriz,tolerancia):
     """
