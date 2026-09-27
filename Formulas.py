@@ -10,19 +10,21 @@ def CalcInfo (fdp): #dado una lista de probabilidades genera una lista con la in
     alto corresponde a un suceso poco probable y sorpresivo; un valor bajo
     corresponde a un suceso frecuente y predecible.
     """
-    return [math.log2(1/p) for p in fdp if p>0]
+    return [math.log2(1/p) for p in fdp]
 
-def CalcEntropia (fdp): #dado una lista de probabilidades devuelve la entropia
-    """
-    Algoritmo: obtiene la información de cada suceso y calcula su promedio
-    ponderado usando como pesos las probabilidades de la fuente.
 
-    Interpretación del resultado: devuelve la entropía en bits por símbolo.
-    Una entropía baja indica una fuente muy predecible; una entropía alta
-    indica mayor incertidumbre. El máximo se alcanza con sucesos equiprobables.
+def CalcEntropia (fdp):
     """
-    info = CalcInfo(fdp)
-    return sum([p*i for p,i in zip(fdp,info)])
+        Algoritmo: obtiene la información de cada suceso y calcula su promedio
+        ponderado usando como pesos las probabilidades de la fuente.
+    
+        Interpretación del resultado: devuelve la entropía en bits por símbolo.
+        Una entropía baja indica una fuente muy predecible; una entropía alta
+        indica mayor incertidumbre. El máximo se alcanza con sucesos equiprobables.
+        """
+    return sum([p*math.log2(1/p) for p in fdp if p > 0])
+
+
 
 
 
@@ -44,7 +46,9 @@ def GeneraAlfabetoYProb (cadena): #dado una cadena de caracteres, devuelve dos l
         if c not in alfabeto and c != ' ':
             alfabeto.append(c)
             probabilidades.append(cadena.count(c)/long)
-
+    pares = sorted(zip(alfabeto, probabilidades))    # ordena por simbolo, sin separar cada par
+    alfabeto = [s for s, p in pares]
+    probabilidades = [p for s, p in pares]
     return alfabeto, probabilidades
 
 def GeneraPalabra (N, alfabeto, probabilidades):  #dado un int, un array alfabeto y un array paralelo con 
@@ -138,6 +142,7 @@ def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de trans
     for i in range(len(cadena)):
         if cadena[i] not in alfabeto:
             alfabeto.append(cadena[i]);
+    alfabeto.sort() 
     n=len(alfabeto);
     mat=[[0 for i in range(n)] for j in range(n)]
     for k in range (len(cadena)-1):
@@ -156,7 +161,7 @@ def transponer(matriz):
     
 def generaVectorEstacionario(matriz,n): 
     pi = [1/n] * n
-    for k in range(30):          # con 10 no llega a estabilizarse del todo, con 30 si
+    for k in range(50):          # con 10 no llega a estabilizarse del todo, con 30 si
         piNuevo = [0] * n
         for j in range(n):                  # j = estado DESTINO
             suma = 0
@@ -167,110 +172,7 @@ def generaVectorEstacionario(matriz,n):
     return pi
 
 
-def calculaInfoCondicional(probabilidad):
-    """
-    Calcula la información aportada por un símbolo cuando se conoce el estado
-    anterior de la fuente:
-
-        I(s_i / estado) = log2(1 / P(s_i / estado))
-
-    La probabilidad recibida debe ser estrictamente mayor que cero y menor o
-    igual que uno. El resultado se expresa en bits.
-    """
-    if probabilidad <= 0 or probabilidad > 1:
-        raise ValueError("La probabilidad condicional debe estar en el intervalo (0, 1].")
-
-    return math.log2(1 / probabilidad)
-
-
-def calculaEntropiaMarkovOrden1(matriz, vector_estacionario=None):
-    """
-    Calcula la entropía por símbolo de una fuente de Markov de orden 1:
-
-        H1 = sum_i p_i* sum_j p(j/i) log2(1 / p(j/i))
-
-    Sigue la convención usada por ``generaalfabetoyTransicion``:
-    ``matriz[destino][origen]`` representa P(destino/origen).
-
-    Si no se proporciona el vector estacionario, se aproxima mediante
-    ``generaVectorEstacionario``. Las transiciones de probabilidad cero no
-    aportan a la entropía.
-    """
-    n = len(matriz)
-    if n == 0 or any(len(fila) != n for fila in matriz):
-        raise ValueError("La matriz de transición debe ser cuadrada y no vacía.")
-
-    for origen in range(n):
-        probabilidades = [matriz[destino][origen] for destino in range(n)]
-        if any(p < 0 or p > 1 for p in probabilidades):
-            raise ValueError("Las probabilidades de transición deben estar entre 0 y 1.")
-        if not math.isclose(sum(probabilidades), 1.0, rel_tol=1e-9, abs_tol=1e-9):
-            raise ValueError("Las probabilidades de cada estado de origen deben sumar 1.")
-
-    if vector_estacionario is None:
-        vector_estacionario = generaVectorEstacionario(matriz, n)
-
-    if len(vector_estacionario) != n:
-        raise ValueError("El vector estacionario debe tener una probabilidad por estado.")
-    if any(p < 0 or p > 1 for p in vector_estacionario):
-        raise ValueError("Las probabilidades estacionarias deben estar entre 0 y 1.")
-    if not math.isclose(sum(vector_estacionario), 1.0, rel_tol=1e-9, abs_tol=1e-9):
-        raise ValueError("Las probabilidades del vector estacionario deben sumar 1.")
-
-    entropia = 0
-    for origen, prob_estado in enumerate(vector_estacionario):
-        probabilidades_salida = [matriz[destino][origen] for destino in range(n)]
-        entropia += prob_estado * sum(
-            p * math.log2(1 / p) for p in probabilidades_salida if p > 0
-        )
-
-    return entropia
-
-
-def calculaEntropiaMarkovOrdenM(probabilidades_estados, probabilidades_condicionales):
-    """
-    Calcula la entropía de una fuente de Markov de orden m:
-
-        H(S) = sum_estado P(estado) H(S / estado)
-
-    ``probabilidades_estados`` contiene P(S_j1, ..., S_jm), mientras que cada
-    elemento de ``probabilidades_condicionales`` es la distribución del
-    próximo símbolo para el estado correspondiente. El resultado se expresa
-    en bits por símbolo.
-
-    Se pasan dos listas paralelas:
-        - La probabilidad de cada estado de memoria.
-        - La distribución del siguiente símbolo para cada estado.
-    """
-    if len(probabilidades_estados) == 0:
-        raise ValueError("Debe proporcionarse al menos un estado.")
-    if len(probabilidades_estados) != len(probabilidades_condicionales):
-        raise ValueError("Debe haber una distribución condicional por cada estado.")
-    if any(p < 0 or p > 1 for p in probabilidades_estados):
-        raise ValueError("Las probabilidades de los estados deben estar entre 0 y 1.")
-    if not math.isclose(sum(probabilidades_estados), 1.0, rel_tol=1e-9, abs_tol=1e-9):
-        raise ValueError("Las probabilidades de los estados deben sumar 1.")
-
-    entropia = 0
-    for prob_estado, distribucion in zip(
-        probabilidades_estados, probabilidades_condicionales
-    ):
-        if len(distribucion) == 0:
-            raise ValueError("Las distribuciones condicionales no pueden estar vacías.")
-        if any(p < 0 or p > 1 for p in distribucion):
-            raise ValueError("Las probabilidades condicionales deben estar entre 0 y 1.")
-        if not math.isclose(sum(distribucion), 1.0, rel_tol=1e-9, abs_tol=1e-9):
-            raise ValueError("Cada distribución condicional debe sumar 1.")
-
-        entropia_condicional = sum(
-            p * math.log2(1 / p) for p in distribucion if p > 0
-        )
-        entropia += prob_estado * entropia_condicional
-
-    return entropia
-
-
-def tieneMemoriaNoNula(matriz,tolerancia):
+def tienememoria(matriz,tolerancia):
     """
     Algoritmo: compara, para cada fila, sus probabilidades entre columnas usando
     la entrada diagonal como referencia. Si alguna diferencia supera la
@@ -291,4 +193,68 @@ def tieneMemoriaNoNula(matriz,tolerancia):
             i+=1
     return tienememoria
 
-tolerancia = 0.1
+
+def entropiaFuenteMarkov(matriz, pi):   # NUEVA
+    """
+    Algoritmo: para cada estado de origen toma su columna (la distribucion
+    del simbolo siguiente dado ese origen), calcula su entropia, y promedia
+    esas entropias ponderando por pi (vector estacionario):
+        H(S) = suma_j  pi[j] * H(columna j)
+ 
+    Interpretación del resultado: bits por simbolo de la fuente CON memoria.
+    En teoria es <= que la entropia calculada como si fuera de memoria nula
+    (CalcEntropia de las probabilidades del mensaje). La diferencia entre
+    ambas mide cuanto ayuda conocer el simbolo anterior para predecir el
+    siguiente: cuanto mas grande, mas fuerte es la memoria.
+    En una fuente SIN memoria las dos dan igual (o casi, por ruido de
+    muestreo en mensajes cortos).
+    """
+    columnas = transponer(matriz)   # fila j de la transpuesta = columna j (origen j)
+    H = 0
+    for j in range(len(columnas)):
+        H += pi[j] * CalcEntropia(columnas[j])   # CalcEntropia ya ignora los ceros
+    return H
+ 
+ 
+
+
+def imprimirMatriz(alfabeto, matriz):
+    n = len(alfabeto)
+    print("llegada \\ origen", end="")
+    for j in range(n):
+        print(f"{alfabeto[j]:>8}", end="")          # encabezado: un simbolo por columna
+    print()
+    for i in range(n):
+        print(f"{alfabeto[i]:>16}", end="")         # nombre de la fila
+        for j in range(n):
+            print(f"{matriz[i][j]:8.3f}", end="")   # 3 decimales, ancho 8
+        print()
+    print(f"{'suma columna':>16}", end="")
+    for j in range(n):
+        print(f"{sum(matriz[i][j] for i in range(n)):8.3f}", end="")
+    print()
+def imprimirProbabilidades(alfabeto, probs):
+    porLinea=1
+    for k in range(len(alfabeto)):
+        print(f'P("{alfabeto[k]}") = {probs[k]:.4f}', end="    ")
+        if (k + 1) % porLinea == 0:
+            print()                        # salto de renglon cada porLinea pares
+    if len(alfabeto) % porLinea != 0:
+        print()
+    print(f"Suma = {sum(probs):.4f}")
+
+tolerancia = 0.01
+""""
+a) Recorri el mensaje y tome cada simbolo distinto como alfabeto de la fuente, ordenados como en el enunciado. La probabilidad de cada simbolo es su cantidad de apariciones dividida por el largo del mensaje (50 simbolos). Por ejemplo, ")" aparece 22 veces: 22/50 = 0.44.
+
+b) Recorri el mensaje de a pares consecutivos (simbolo actual, simbolo siguiente), que son 49 pares, y conte cada par en la celda de la matriz con columna = simbolo actual (origen) y fila = simbolo siguiente (llegada). Despues dividi cada celda por el total de su columna, es decir por la cantidad de veces que ese simbolo aparece seguido de otro, y no por el total de pares. Asi cada columna es la distribucion P(siguiente | actual) y suma 1.
+
+c) Si la fuente no tiene memoria, el simbolo anterior no cambia la probabilidad del siguiente, entonces todas las columnas de la matriz tienen que ser iguales. Para cada fila compare los valores de las distintas columnas con una tolerancia de 0.01: si alguna diferencia la supera, la fuente tiene memoria. En el mensaje 1 las columnas son iguales (diferencia 0), por lo que es de memoria nula. En el mensaje 2 difieren hasta 0.33 (por ejemplo, P("." | ",") = 0.33 pero P("." | ".") = 0), por lo que tiene memoria.
+
+d) Para la fuente de memoria nula use H(S) = suma de p.log2(1/p) con las probabilidades del inciso a. Para la fuente con memoria calcule la entropia de cada columna de la matriz (la incertidumbre sobre el siguiente simbolo sabiendo el actual) y las promedie ponderando con el vector estacionario: H(S) = suma de pi_j . H(columna j).
+
+e) Solo para la fuente de memoria nula: arme los 16 pares posibles combinando cada simbolo con cada uno de los 4. Como los simbolos son independientes, la probabilidad de cada par es el producto de las probabilidades individuales, por ejemplo P("()") = 0.14 . 0.44 = 0.061. La entropia de la extension se calcula con la misma formula sobre esas 16 probabilidades.
+
+f) Solo para la fuente con memoria: parti de un vector con la misma probabilidad para cada estado () y lo multiplique repetidamente por la matriz de transicion, pi_nuevo(i) = suma de P(i | j) . pi(j), hasta que dejo de cambiar. El vector final cumple pi = M . pi y suma 1.
+
+"""

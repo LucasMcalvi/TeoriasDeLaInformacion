@@ -1,6 +1,107 @@
-#CODIFICACION
+
 import math
 import random
+
+probabilidades =[0.15,0.25,0.05,0.45,0.1]
+palabras= ["/+","*","+-","-","*/"]
+palabras2 =["(]","]","[)",")","(["]
+def CalcInfo (fdp): #dado una lista de probabilidades genera una lista con la informacion obtenida en bits
+    """
+    Algoritmo: calcula la cantidad de información asociada a cada suceso como
+    el logaritmo en base 2 del inverso de su probabilidad.
+
+    Interpretación del resultado: devuelve una lista medida en bits. Un valor
+    alto corresponde a un suceso poco probable y sorpresivo; un valor bajo
+    corresponde a un suceso frecuente y predecible.
+    """
+    return [math.log2(1/p) for p in fdp]
+
+
+def CalcEntropia (fdp):
+    """
+        Algoritmo: obtiene la información de cada suceso y calcula su promedio
+        ponderado usando como pesos las probabilidades de la fuente.
+    
+        Interpretación del resultado: devuelve la entropía en bits por símbolo.
+        Una entropía baja indica una fuente muy predecible; una entropía alta
+        indica mayor incertidumbre. El máximo se alcanza con sucesos equiprobables.
+        """
+    return sum([p*math.log2(1/p) for p in fdp if p > 0])
+def get_longitudes(palabras):
+    """
+    Calcula la longitud de cada palabra codigo.
+    Recibe una lista de palabras codigo y devuelve una lista de enteros.
+    Usa una comprension de listas para aplicar len() a cada palabra.
+
+    Algoritmo: determina cuántos símbolos contiene cada palabra código.
+
+    Interpretación del resultado: devuelve una lista paralela a la entrada; cada
+    número es la longitud de la palabra ubicada en la misma posición. Valores
+    mayores representan palabras que requieren más símbolos para transmitirse.
+    """
+    return [len(palabra) for palabra in palabras]
+def get_alfabetoCodigo(palabras):
+    """
+    Obtiene el alfabeto codigo utilizado por las palabras recibidas.
+    Recibe una lista de palabras codigo y devuelve una cadena con sus
+    caracteres sin repetir y ordenados. Agrega los caracteres a un set,
+    los ordena con sorted() y los une con join().
+
+    Algoritmo: reúne todos los símbolos usados por las palabras código, elimina
+    repeticiones y los ordena para formar el alfabeto del código.
+
+    Interpretación del resultado: devuelve una cadena con cada símbolo del
+    alfabeto exactamente una vez. Su longitud es la base del código; una cadena
+    vacía indica que no se recibió ningún símbolo utilizable.
+    """
+
+    #update(palabra) agrega al conjunto cada carácter de la palabra, sin repetirlos. Luego sorted() los ordena y join() los une en una cadena.
+
+    alfabeto = set()
+
+    for palabra in palabras:
+        alfabeto.update(palabra)
+
+    return "".join(sorted(alfabeto))
+
+
+
+def get_longitudMedia(palabras, probabilidades):
+    """
+    Algoritmo: pondera la longitud de cada palabra código por su probabilidad de
+    aparición y suma todos esos aportes.
+
+    Interpretación del resultado: devuelve la cantidad promedio de símbolos de
+    código necesarios por símbolo fuente. Cuanto menor sea el valor, más corta
+    será en promedio la representación, si se comparan códigos válidos.
+    """
+
+    #calcula la longitud media del codigo
+
+    return sum([p*len(palabra) for palabra, p in zip (palabras, probabilidades)])
+def calcular_kraft(palabras):
+    """
+    Calcula la sumatoria de la inecuacion de Kraft.
+    Recibe una lista de palabras codigo y devuelve el valor de la suma.
+    Obtiene la base r del alfabeto y suma r elevado a la longitud negativa
+    de cada palabra.
+
+    Algoritmo: obtiene la base r del alfabeto del código y suma r elevado al
+    negativo de la longitud de cada palabra, según la inecuación de Kraft.
+
+    Interpretación del resultado: una suma menor o igual que 1 cumple Kraft y
+    permite que exista un código instantáneo con esas longitudes; una suma mayor
+    que 1 lo hace imposible. El valor 1 indica que el árbol de código está lleno.
+    """
+    alfabeto = get_alfabetoCodigo(palabras)
+    L = get_longitudes(palabras)
+    r = len(alfabeto)
+
+    if r == 0:
+        return 0
+
+    return sum(r ** -longitud for longitud in L)
+
 def es_noSingular(codigo): #devuelve si un codigo es no singular
     """
     Algoritmo: compara la cantidad total de palabras código con la cantidad de
@@ -31,6 +132,8 @@ def es_instantaneo(palabras):
 
 
 
+
+
 def calcular_restos(conjunto_a, conjunto_b):
     """
     Compara cada elemento de conjunto_a contra cada elemento de
@@ -57,7 +160,7 @@ def calcular_restos(conjunto_a, conjunto_b):
                     restos.add(resto)
     return restos
 
-def es_univocamente_decodificable(palabras,mostrar=False):
+def es_univocamente_decodificable(palabras,mostrar = False):
     """
     Implementa el algoritmo de Sardinas-Patterson.
 
@@ -86,6 +189,7 @@ def es_univocamente_decodificable(palabras,mostrar=False):
     admite una única separación en palabras código. False significa que existe
     al menos una cadena que puede decodificarse de dos maneras diferentes.
     """
+    
     if not es_noSingular(palabras):
         if mostrar:
             print("   Hay palabras repetidas: el codigo es singular -> NO univoco")
@@ -120,70 +224,7 @@ def es_univocamente_decodificable(palabras,mostrar=False):
         historial.append(siguiente)
         c_actual = siguiente
         n += 1
-
-def get_alfabetoCodigo(palabras):
-    """
-    Obtiene el alfabeto codigo utilizado por las palabras recibidas.
-    Recibe una lista de palabras codigo y devuelve una cadena con sus
-    caracteres sin repetir y ordenados. Agrega los caracteres a un set,
-    los ordena con sorted() y los une con join().
-
-    Algoritmo: reúne todos los símbolos usados por las palabras código, elimina
-    repeticiones y los ordena para formar el alfabeto del código.
-
-    Interpretación del resultado: devuelve una cadena con cada símbolo del
-    alfabeto exactamente una vez. Su longitud es la base del código; una cadena
-    vacía indica que no se recibió ningún símbolo utilizable.
-    """
-
-    #update(palabra) agrega al conjunto cada carácter de la palabra, sin repetirlos. Luego sorted() los ordena y join() los une en una cadena.
-
-    alfabeto = set()
-
-    for palabra in palabras:
-        alfabeto.update(palabra)
-
-    return "".join(sorted(alfabeto))
-
-
-def get_longitudes(palabras):
-    """
-    Calcula la longitud de cada palabra codigo.
-    Recibe una lista de palabras codigo y devuelve una lista de enteros.
-    Usa una comprension de listas para aplicar len() a cada palabra.
-
-    Algoritmo: determina cuántos símbolos contiene cada palabra código.
-
-    Interpretación del resultado: devuelve una lista paralela a la entrada; cada
-    número es la longitud de la palabra ubicada en la misma posición. Valores
-    mayores representan palabras que requieren más símbolos para transmitirse.
-    """
-    return [len(palabra) for palabra in palabras]
-
-
-def calcular_kraft(palabras):
-    """
-    Calcula la sumatoria de la inecuacion de Kraft.
-    Recibe una lista de palabras codigo y devuelve el valor de la suma.
-    Obtiene la base r del alfabeto y suma r elevado a la longitud negativa
-    de cada palabra.
-
-    Algoritmo: obtiene la base r del alfabeto del código y suma r elevado al
-    negativo de la longitud de cada palabra, según la inecuación de Kraft.
-
-    Interpretación del resultado: una suma menor o igual que 1 cumple Kraft y
-    permite que exista un código instantáneo con esas longitudes; una suma mayor
-    que 1 lo hace imposible. El valor 1 indica que el árbol de código está lleno.
-    """
-    alfabeto = get_alfabetoCodigo(palabras)
-    L = get_longitudes(palabras)
-    r = len(alfabeto)
-
-    if r == 0:
-        return 0
-
-    return sum(r ** -longitud for longitud in L)
-
+        
 def entropia_fuente(palabras, probabilidades):
     """
     Algoritmo: calcula el promedio de información de los símbolos fuente usando
@@ -201,20 +242,6 @@ def entropia_fuente(palabras, probabilidades):
     base = len(set_palabras)
 
     return sum([p*math.log(1/p, base) for p in probabilidades if p>0])
-
-def get_longitudMedia(palabras, probabilidades):
-    """
-    Algoritmo: pondera la longitud de cada palabra código por su probabilidad de
-    aparición y suma todos esos aportes.
-
-    Interpretación del resultado: devuelve la cantidad promedio de símbolos de
-    código necesarios por símbolo fuente. Cuanto menor sea el valor, más corta
-    será en promedio la representación, si se comparan códigos válidos.
-    """
-
-    #calcula la longitud media del codigo
-
-    return sum([p*len(palabra) for palabra, p in zip (palabras, probabilidades)])
 
 def es_compacto(palabras, probabilidades):
     """
@@ -239,30 +266,25 @@ def es_compacto(palabras, probabilidades):
         return True
     else:
         return False
-
-def generar_mensaje(N, palabras, probabilidades):
+def entropia_fuente(palabras, probabilidades):
     """
-    Algoritmo: realiza N elecciones aleatorias independientes entre las palabras
-    código, usando sus probabilidades como pesos, y concatena las elegidas.
+    Algoritmo: calcula el promedio de información de los símbolos fuente usando
+    como base logarítmica la cantidad de símbolos del alfabeto del código.
 
-    Interpretación del resultado: devuelve un mensaje codificado formado por N
-    palabras, aunque su longitud total puede variar si estas tienen longitudes
-    distintas. En muchas generaciones, sus frecuencias deberían aproximarse a
-    las probabilidades indicadas.
+    Interpretación del resultado: mide la incertidumbre en símbolos del alfabeto
+    código por símbolo fuente. Un valor bajo describe una fuente predecible y
+    uno alto una fuente menos predecible; el máximo ocurre con probabilidades
+    uniformes. Las probabilidades nulas no aportan a la entropía.
     """
 
-    #Dado un N, una lista de palabras codigo de una codificacion y sus probabbilidades, genera aleatoriamente un posible mensaje de N símbolos codificados emitido por dicha fuente
+    #calcula la entropia de la fuente a partir de una lista de  palabras codigo de una codificacion y sus probabilidades
 
-    elegidas = random.choices(
-        palabras,
-        weights=probabilidades,
-        k=N
-    )
-    return "".join(elegidas)
+    set_palabras = set("".join(palabras))
+    base = len(set_palabras)
 
-#A random.choises le pasas la lista con las palabras, para que tenga los elementos a elegir
-# el peso de cada elemento
-# Y un k que dice cuantas elecciones realiza, en este caso N
+    return sum([p*math.log(1/p, base) for p in probabilidades if p>0])
+
+
 def clasifica(codigo):
     """
     Algoritmo: clasifica el código en forma jerárquica: comprueba si sus palabras
@@ -284,21 +306,34 @@ def clasifica(codigo):
     else:
             return "bloque"
 
-
-
-
-
 """""
-a) Reuni los simbolos distintos que aparecen en todas las palabras de cada codigo. Codigo A: {*, +, -, /}; codigo B: {(, ), [, ]}. En los dos el alfabeto codigo tiene r = 4 simbolos, que es la base que uso en los calculos siguientes. Las longitudes de las palabras son 2, 1, 2, 1, 2.
-
-b) La entropia de la fuente la calcule como Hr(S) = suma de p_i . log_r(1/p_i), con las probabilidades de los simbolos fuente S1 a S5 y r = 4, para que quede en simbolos de codigo por simbolo fuente, la misma unidad que la longitud media: Hr(S) = 0.99. La longitud media es L = suma de p_i . l_i = 0.15.2 + 0.25.1 + 0.05.2 + 0.45.1 + 0.10.2 = 1.3.
-
-c) Calcule la suma de r^(-l_i) con r = 4 y las longitudes de cada palabra: dos palabras de longitud 1 y tres de longitud 2 dan 2.4^(-1) + 3.4^(-2) = 0.6875. Como es menor o igual que 1, se cumple la inecuacion.
-
-d) Primero compare las palabras entre si: ninguna se repite, asi que los dos codigos son no singulares. Despues verifique para cada par de palabras si una es prefijo de otra. En A, "*" es prefijo de "*/", por lo que no es instantaneo y para saber si es univoco aplique Sardinas-Patterson. En B ninguna palabra es prefijo de otra, por lo que es instantaneo y, por lo tanto, univocamente decodificable.
-
-e) Para que sea compacto, el codigo tiene que ser univoco y cada longitud tiene que cumplir l_i <= techo(log_r(1/p_i)). En B los topes son 2, 1, 3, 1, 2 y las longitudes 2, 1, 2, 1, 2: todas cumplen, asi que es compacto. A no es compacto porque no es univocamente decodificable.
-
-f) Sardinas-Patterson sobre el codigo A. C1 son los restos que quedan cuando una palabra es prefijo de otra: "*" es prefijo de "*/" y deja "/", entonces C1 = {/}. C2: "/" es prefijo de "/+" y deja "+", entonces C2 = {+}. C3: "+" es prefijo de "+-" y deja "-", entonces C3 = {-}. Como "-" es una palabra del codigo, A no es univocamente decodificable. Por ejemplo, "*/+-" se lee como (*)(/+)(-) y tambien como (*/)(+-). En el codigo B no hay prefijos, C1 es vacio y el algoritmo termina: es univoco.
-
+print("longitud media",get_longitudMedia(palabras,probabilidades))
+print (" el codigo es ",clasifica(palabras))
+print("entropia fuente con base r ",entropia_fuente(palabras,probabilidades))
+print("Inecuacion de Kraft",calcular_kraft(palabras))
+if es_univocamente_decodificable(palabras,True):  #True para mostrar
+    if es_compacto(palabras, probabilidades):
+        print("es compacto")
+    else:
+        print("no es compacto")
+else:
+    print("no es compacto porque no es univoco")
 """
+alfabeto = get_alfabetoCodigo(palabras)
+kraft = calcular_kraft(palabras)
+print("===== Codigo", palabras, "=====")
+print("Alfabeto codigo:", list(alfabeto), " r =", len(alfabeto))
+print("Longitudes:", get_longitudes(palabras))
+print("Entropia de la fuente (base r):", round(entropia_fuente(palabras, probabilidades), 4))
+print("Longitud media:", round(get_longitudMedia(palabras, probabilidades), 4))
+print("Inecuacion de Kraft-McMillan:", round(kraft, 4), "<= 1, se cumple" if kraft <= 1 else "> 1, no se cumple")
+print("Clasificacion:", clasifica(palabras))
+print("Sardinas-Patterson:")
+univoco = es_univocamente_decodificable(palabras, True)
+if not univoco:
+    print("Compacto: no, porque no es univocamente decodificable")
+elif es_compacto(palabras, probabilidades):
+    print("Compacto: si")
+else:
+    print("Compacto: no, alguna palabra supera techo(log_r(1/p))")
+print()
