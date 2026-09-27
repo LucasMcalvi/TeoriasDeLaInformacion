@@ -10,7 +10,7 @@ def CalcInfo (fdp): #dado una lista de probabilidades genera una lista con la in
     alto corresponde a un suceso poco probable y sorpresivo; un valor bajo
     corresponde a un suceso frecuente y predecible.
     """
-    return [math.log2(1/p) for p in fdp]
+    return [math.log2(1/p) for p in fdp if p>0]
 
 def CalcEntropia (fdp): #dado una lista de probabilidades devuelve la entropia
     """
