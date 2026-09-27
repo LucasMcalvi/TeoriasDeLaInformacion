@@ -167,7 +167,110 @@ def generaVectorEstacionario(matriz,n):
     return pi
 
 
-def tienememorianula(matriz,tolerancia):
+def calculaInfoCondicional(probabilidad):
+    """
+    Calcula la información aportada por un símbolo cuando se conoce el estado
+    anterior de la fuente:
+
+        I(s_i / estado) = log2(1 / P(s_i / estado))
+
+    La probabilidad recibida debe ser estrictamente mayor que cero y menor o
+    igual que uno. El resultado se expresa en bits.
+    """
+    if probabilidad <= 0 or probabilidad > 1:
+        raise ValueError("La probabilidad condicional debe estar en el intervalo (0, 1].")
+
+    return math.log2(1 / probabilidad)
+
+
+def calculaEntropiaMarkovOrden1(matriz, vector_estacionario=None):
+    """
+    Calcula la entropía por símbolo de una fuente de Markov de orden 1:
+
+        H1 = sum_i p_i* sum_j p(j/i) log2(1 / p(j/i))
+
+    Sigue la convención usada por ``generaalfabetoyTransicion``:
+    ``matriz[destino][origen]`` representa P(destino/origen).
+
+    Si no se proporciona el vector estacionario, se aproxima mediante
+    ``generaVectorEstacionario``. Las transiciones de probabilidad cero no
+    aportan a la entropía.
+    """
+    n = len(matriz)
+    if n == 0 or any(len(fila) != n for fila in matriz):
+        raise ValueError("La matriz de transición debe ser cuadrada y no vacía.")
+
+    for origen in range(n):
+        probabilidades = [matriz[destino][origen] for destino in range(n)]
+        if any(p < 0 or p > 1 for p in probabilidades):
+            raise ValueError("Las probabilidades de transición deben estar entre 0 y 1.")
+        if not math.isclose(sum(probabilidades), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+            raise ValueError("Las probabilidades de cada estado de origen deben sumar 1.")
+
+    if vector_estacionario is None:
+        vector_estacionario = generaVectorEstacionario(matriz, n)
+
+    if len(vector_estacionario) != n:
+        raise ValueError("El vector estacionario debe tener una probabilidad por estado.")
+    if any(p < 0 or p > 1 for p in vector_estacionario):
+        raise ValueError("Las probabilidades estacionarias deben estar entre 0 y 1.")
+    if not math.isclose(sum(vector_estacionario), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("Las probabilidades del vector estacionario deben sumar 1.")
+
+    entropia = 0
+    for origen, prob_estado in enumerate(vector_estacionario):
+        probabilidades_salida = [matriz[destino][origen] for destino in range(n)]
+        entropia += prob_estado * sum(
+            p * math.log2(1 / p) for p in probabilidades_salida if p > 0
+        )
+
+    return entropia
+
+
+def calculaEntropiaMarkovOrdenM(probabilidades_estados, probabilidades_condicionales):
+    """
+    Calcula la entropía de una fuente de Markov de orden m:
+
+        H(S) = sum_estado P(estado) H(S / estado)
+
+    ``probabilidades_estados`` contiene P(S_j1, ..., S_jm), mientras que cada
+    elemento de ``probabilidades_condicionales`` es la distribución del
+    próximo símbolo para el estado correspondiente. El resultado se expresa
+    en bits por símbolo.
+
+    Se pasan dos listas paralelas:
+        - La probabilidad de cada estado de memoria.
+        - La distribución del siguiente símbolo para cada estado.
+    """
+    if len(probabilidades_estados) == 0:
+        raise ValueError("Debe proporcionarse al menos un estado.")
+    if len(probabilidades_estados) != len(probabilidades_condicionales):
+        raise ValueError("Debe haber una distribución condicional por cada estado.")
+    if any(p < 0 or p > 1 for p in probabilidades_estados):
+        raise ValueError("Las probabilidades de los estados deben estar entre 0 y 1.")
+    if not math.isclose(sum(probabilidades_estados), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("Las probabilidades de los estados deben sumar 1.")
+
+    entropia = 0
+    for prob_estado, distribucion in zip(
+        probabilidades_estados, probabilidades_condicionales
+    ):
+        if len(distribucion) == 0:
+            raise ValueError("Las distribuciones condicionales no pueden estar vacías.")
+        if any(p < 0 or p > 1 for p in distribucion):
+            raise ValueError("Las probabilidades condicionales deben estar entre 0 y 1.")
+        if not math.isclose(sum(distribucion), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+            raise ValueError("Cada distribución condicional debe sumar 1.")
+
+        entropia_condicional = sum(
+            p * math.log2(1 / p) for p in distribucion if p > 0
+        )
+        entropia += prob_estado * entropia_condicional
+
+    return entropia
+
+
+def tieneMemoriaNoNula(matriz,tolerancia):
     """
     Algoritmo: compara, para cada fila, sus probabilidades entre columnas usando
     la entrada diagonal como referencia. Si alguna diferencia supera la
