@@ -1,0 +1,74 @@
+PARRAFOS MODELO - PARCIAL TIC
+Basados en el Primer Parcial 30/7/25 y en la correccion del docente.
+Los numeros son los del modelo: cambialos por los tuyos (salen de las plantillas).
+
+COMO CORRIGEN (se ve en la correccion):
+- "Explicar como se obtuvieron" se corrige inciso por inciso (a, b, c, d, e, f).
+  Quieren el PROCEDIMIENTO con los datos concretos: que recorriste, que contaste,
+  por que dividiste, que valores usaste. NO quieren definiciones de libro
+  (el alumno que puso definiciones saco 6/20: "describe las clasificaciones,
+  pero no indica como lo determina").
+- "Analizar los resultados" es la interpretacion: que significan los numeros,
+  que se puede concluir y comparar. Ahi no hace falta explicar calculos.
+
+
+=====================================================================
+EJERCICIO 1 - EXPLICAR BREVEMENTE COMO SE OBTUVIERON LOS RESULTADOS
+(el alumno saco 10/20: le faltaron b, e, f y la tolerancia en c)
+=====================================================================
+
+a) Recorri el mensaje y tome cada simbolo distinto como alfabeto de la fuente, ordenados como en el enunciado. La probabilidad de cada simbolo es su cantidad de apariciones dividida por el largo del mensaje (50 simbolos). Por ejemplo, ")" aparece 22 veces: 22/50 = 0.44.
+
+b) Recorri el mensaje de a pares consecutivos (simbolo actual, simbolo siguiente), que son 49 pares, y conte cada par en la celda de la matriz con columna = simbolo actual (origen) y fila = simbolo siguiente (llegada). Despues dividi cada celda por el total de su columna, es decir por la cantidad de veces que ese simbolo aparece seguido de otro, y no por el total de pares. Asi cada columna es la distribucion P(siguiente | actual) y suma 1.
+
+c) Si la fuente no tiene memoria, el simbolo anterior no cambia la probabilidad del siguiente, entonces todas las columnas de la matriz tienen que ser iguales. Para cada fila compare los valores de las distintas columnas con una tolerancia de 0.01: si alguna diferencia la supera, la fuente tiene memoria. En el mensaje 1 las columnas son iguales (diferencia 0), por lo que es de memoria nula. En el mensaje 2 difieren hasta 0.33 (por ejemplo, P("." | ",") = 0.33 pero P("." | ".") = 0), por lo que tiene memoria.
+
+d) Para la fuente de memoria nula use H(S) = suma de p.log2(1/p) con las probabilidades del inciso a. Para la fuente con memoria calcule la entropia de cada columna de la matriz (la incertidumbre sobre el siguiente simbolo sabiendo el actual) y las promedie ponderando con el vector estacionario: H(S) = suma de pi_j . H(columna j).
+
+e) Solo para la fuente de memoria nula: arme los 16 pares posibles combinando cada simbolo con cada uno de los 4. Como los simbolos son independientes, la probabilidad de cada par es el producto de las probabilidades individuales, por ejemplo P("()") = 0.14 . 0.44 = 0.061. La entropia de la extension se calcula con la misma formula sobre esas 16 probabilidades.
+
+f) Solo para la fuente con memoria: parti de un vector con la misma probabilidad para cada estado (0.25) y lo multiplique repetidamente por la matriz de transicion, pi_nuevo(i) = suma de P(i | j) . pi(j), hasta que dejo de cambiar. El vector final cumple pi = M . pi y suma 1.
+
+
+=====================================================================
+EJERCICIO 1 - ANALIZAR LOS RESULTADOS Y REALIZAR CONCLUSIONES
+(el alumno saco 20/20; esta version agrega los numeros que lo justifican)
+=====================================================================
+
+El mensaje 1 proviene de una fuente de memoria nula: las columnas de la matriz son iguales, es decir que el simbolo anterior no aporta informacion sobre el siguiente y cada emision es independiente. Su entropia es 1.83 bits por simbolo, cerca del maximo log2(4) = 2 bits: es una fuente poco predecible, que no llega al maximo porque ")" (0.44) es mucho mas frecuente que "(" y "]" (0.14). La extension de orden 2 tiene entropia 3.66 = 2 . H(S): como los simbolos son independientes, cada par lleva exactamente el doble de informacion que un simbolo.
+
+El mensaje 2 proviene de una fuente con memoria: la probabilidad del siguiente simbolo depende del anterior (por ejemplo, despues de "." nunca aparece otro "." ni una ","). Su entropia es 1.57 bits por simbolo, menor que los 1.84 bits que tendria si se ignoraran las dependencias (entropia de la fuente afin, calculada con el vector estacionario). Conocer el simbolo anterior reduce la incertidumbre en 0.26 bits por simbolo, alrededor de un 14%. El vector estacionario (0.12, 0.24, 0.44, 0.18) coincide con las frecuencias observadas en el mensaje, lo que confirma la matriz y muestra que a largo plazo la fuente pasa el 44% del tiempo en ":".
+
+Las dos fuentes tienen distribuciones de simbolos parecidas y entropias de orden 0 casi iguales (1.83 y 1.84), asi que mirando solo las frecuencias no se pueden distinguir: la diferencia aparece recien en la matriz de transicion. La memoria hace a la fuente mas predecible y, por lo tanto, mas compresible.
+
+
+=====================================================================
+EJERCICIO 2 - EXPLICAR BREVEMENTE COMO SE OBTUVIERON LOS RESULTADOS
+(el alumno saco 6/20: puso definiciones y no el procedimiento;
+ comentarios: "no se sabe que es X", "no explica que valores utiliza",
+ "no indica como lo determina", "no informa" Sardinas-Patterson)
+=====================================================================
+
+a) Reuni los simbolos distintos que aparecen en todas las palabras de cada codigo. Codigo A: {*, +, -, /}; codigo B: {(, ), [, ]}. En los dos el alfabeto codigo tiene r = 4 simbolos, que es la base que uso en los calculos siguientes. Las longitudes de las palabras son 2, 1, 2, 1, 2.
+
+b) La entropia de la fuente la calcule como Hr(S) = suma de p_i . log_r(1/p_i), con las probabilidades de los simbolos fuente S1 a S5 y r = 4, para que quede en simbolos de codigo por simbolo fuente, la misma unidad que la longitud media: Hr(S) = 0.99. La longitud media es L = suma de p_i . l_i = 0.15.2 + 0.25.1 + 0.05.2 + 0.45.1 + 0.10.2 = 1.3.
+
+c) Calcule la suma de r^(-l_i) con r = 4 y las longitudes de cada palabra: dos palabras de longitud 1 y tres de longitud 2 dan 2.4^(-1) + 3.4^(-2) = 0.6875. Como es menor o igual que 1, se cumple la inecuacion.
+
+d) Primero compare las palabras entre si: ninguna se repite, asi que los dos codigos son no singulares. Despues verifique para cada par de palabras si una es prefijo de otra. En A, "*" es prefijo de "*/", por lo que no es instantaneo y para saber si es univoco aplique Sardinas-Patterson. En B ninguna palabra es prefijo de otra, por lo que es instantaneo y, por lo tanto, univocamente decodificable.
+
+e) Para que sea compacto, el codigo tiene que ser univoco y cada longitud tiene que cumplir l_i <= techo(log_r(1/p_i)). En B los topes son 2, 1, 3, 1, 2 y las longitudes 2, 1, 2, 1, 2: todas cumplen, asi que es compacto. A no es compacto porque no es univocamente decodificable.
+
+f) Sardinas-Patterson sobre el codigo A. C1 son los restos que quedan cuando una palabra es prefijo de otra: "*" es prefijo de "*/" y deja "/", entonces C1 = {/}. C2: "/" es prefijo de "/+" y deja "+", entonces C2 = {+}. C3: "+" es prefijo de "+-" y deja "-", entonces C3 = {-}. Como "-" es una palabra del codigo, A no es univocamente decodificable. Por ejemplo, "*/+-" se lee como (*)(/+)(-) y tambien como (*/)(+-). En el codigo B no hay prefijos, C1 es vacio y el algoritmo termina: es univoco.
+
+
+=====================================================================
+EJERCICIO 2 - ANALIZAR LOS RESULTADOS Y REALIZAR CONCLUSIONES
+(el alumno saco 20/20; esta version ordena y agrega rendimiento)
+=====================================================================
+
+Los dos codigos tienen las mismas longitudes y las mismas probabilidades, por eso comparten entropia (0.99), longitud media (1.3) y suma de Kraft (0.6875). Esos numeros no los distinguen: la diferencia esta en que palabras se eligieron.
+
+Los dos cumplen Kraft-McMillan, lo que asegura que existe un codigo instantaneo con esas longitudes (el codigo B lo demuestra), pero no que cada codigo lo sea. El codigo A no es univocamente decodificable: por Sardinas-Patterson, la cadena "*/+-" tiene dos lecturas posibles, asi que no sirve para transmitir aunque cumpla Kraft. El codigo B es instantaneo: cada palabra se reconoce apenas termina, sin mirar los simbolos siguientes, y por eso tambien es univoco.
+
+En los dos la longitud media (1.3) es mayor que la entropia (0.99), como exige el primer teorema de Shannon. El rendimiento es 0.99/1.3 = 0.76: cerca de un 24% de los simbolos de codigo son redundantes. B es compacto con el criterio de la catedra, porque ninguna palabra es mas larga que techo(log4(1/p_i)); la suma de Kraft menor que 1 indica ademas que quedan ramas libres en el arbol de codigo.
