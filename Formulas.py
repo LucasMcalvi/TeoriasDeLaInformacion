@@ -45,6 +45,12 @@ def GeneraAlfabetoYProb (cadena): #dado una cadena de caracteres, devuelve dos l
             alfabeto.append(c)
             probabilidades.append(cadena.count(c)/long)
 
+    pares = sorted(zip(alfabeto, probabilidades))
+
+    alfabeto = [simbolo for simbolo, probabilidad in pares]
+
+    probabilidades = [probabilidad for simbolo, probabilidad in pares]
+
     return alfabeto, probabilidades
 
 def GeneraPalabra (N, alfabeto, probabilidades):  #dado un int, un array alfabeto y un array paralelo con 
@@ -84,7 +90,7 @@ def Equiprobables (cant): #dada la cantidad de sucesos equiprobables calcula la 
     """
     return math.log2(cant)
 
-def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabilidades y un orden N devuelve una lista de extension N y du distribucion de probabilidades
+def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabilidades y un orden N devuelve una lista de extension N y su distribucion de probabilidades
     """
     Algoritmo: construye recursivamente la extensión de orden N de una fuente.
     Combina cada secuencia de orden N-1 con cada símbolo original y obtiene la
@@ -138,6 +144,7 @@ def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de trans
     for i in range(len(cadena)):
         if cadena[i] not in alfabeto:
             alfabeto.append(cadena[i]);
+    alfabeto = sorted(alfabeto)
     n=len(alfabeto);
     mat=[[0 for i in range(n)] for j in range(n)]
     for k in range (len(cadena)-1):
@@ -148,7 +155,7 @@ def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de trans
         for i in range (n):
             mat[i][j] = mat[i][j]/total_columna
 
-    return alfabeto, mat ;
+    return alfabeto, mat 
 #CALCULA VECTOR ESTACIONARIO
 
 def transponer(matriz):
@@ -165,6 +172,7 @@ def generaVectorEstacionario(matriz,n):
             piNuevo[j] = suma
         pi = piNuevo.copy()
     return pi
+
 
 
 def calculaInfoCondicional(probabilidad):
@@ -291,4 +299,137 @@ def tieneMemoriaNoNula(matriz,tolerancia):
             i+=1
     return tienememoria
 
-tolerancia = 0.1
+def esFuenteErgodica(matriz):
+    """
+    Funcionamiento de la funcion: recibe una matriz de transicion con la
+    convencion matriz[destino][origen]. Verifica que sea cuadrada, que sus
+    probabilidades sean validas y que cada columna sume uno. Devuelve un
+    booleano sin modificar la matriz recibida.
+
+    Algoritmo: interpreta como arista toda transicion con probabilidad mayor
+    que cero. Primero recorre el grafo desde el estado 0, tanto en el sentido
+    normal como en el inverso; si algun estado no es alcanzable en alguno de
+    los dos recorridos, la cadena no es irreducible. Si es irreducible, calcula
+    distancias desde el estado 0 y obtiene el maximo comun divisor de
+    distancia[origen] + 1 - distancia[destino] para todas las aristas. Ese
+    maximo comun divisor es el periodo de la cadena: es aperiódica si vale 1.
+
+    Interpretacion del resultado: True indica que la fuente es irreducible y
+    aperiódica y, por lo tanto, ergodica. En una fuente finita esto implica que
+    existe un unico vector estacionario y que la distribucion converge hacia
+    el desde cualquier estado inicial. False indica que falla al menos una de
+    esas dos condiciones.
+    """
+    n = len(matriz)
+    if n == 0 or any(len(fila) != n for fila in matriz):
+        raise ValueError("La matriz de transicion debe ser cuadrada y no vacia.")
+
+    for origen in range(n):
+        probabilidades = [matriz[destino][origen] for destino in range(n)]
+        if any(p < 0 or p > 1 for p in probabilidades):
+            raise ValueError("Las probabilidades de transicion deben estar entre 0 y 1.")
+        if not math.isclose(sum(probabilidades), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+            raise ValueError("Las probabilidades de cada estado de origen deben sumar 1.")
+
+    def estadosAlcanzables(invertirAristas=False):
+        visitados = [False] * n
+        pendientes = [0]
+        visitados[0] = True
+        siguiente = 0
+
+        while siguiente < len(pendientes):
+            actual = pendientes[siguiente]
+            siguiente += 1
+
+            for estado in range(n):
+                if invertirAristas:
+                    hayTransicion = matriz[actual][estado] > 0
+                else:
+                    hayTransicion = matriz[estado][actual] > 0
+
+                if hayTransicion and not visitados[estado]:
+                    visitados[estado] = True
+                    pendientes.append(estado)
+
+        return visitados
+
+    if not all(estadosAlcanzables()) or not all(estadosAlcanzables(True)):
+        return False
+
+    distancias = [-1] * n
+    distancias[0] = 0
+    pendientes = [0]
+    siguiente = 0
+
+    while siguiente < len(pendientes):
+        origen = pendientes[siguiente]
+        siguiente += 1
+
+        for destino in range(n):
+            if matriz[destino][origen] > 0 and distancias[destino] == -1:
+                distancias[destino] = distancias[origen] + 1
+                pendientes.append(destino)
+
+    periodo = 0
+    for origen in range(n):
+        for destino in range(n):
+            if matriz[destino][origen] > 0:
+                diferencia = distancias[origen] + 1 - distancias[destino]
+                periodo = math.gcd(periodo, abs(diferencia))
+
+    return periodo == 1
+
+
+def obtenerDatosSimbolo(alfabeto, probabilidades, simbolo, *listas_paralelas):
+    """
+    Funcionamiento de la funcion: recibe un alfabeto, su lista paralela de
+    probabilidades, un simbolo o una lista de simbolos buscados y,
+    opcionalmente, cualquier cantidad de listas paralelas adicionales. Para un
+    solo simbolo devuelve un solo resultado; para una lista de simbolos devuelve
+    una lista de resultados en el mismo orden. Si solo se proporciona la lista
+    de probabilidades, cada resultado es esa probabilidad. Si se agregan otras
+    listas, cada resultado es una tupla con la probabilidad y los datos
+    adicionales, respetando el orden en el que se pasaron las listas.
+
+    Algoritmo: comprueba que todas las listas tengan la misma longitud que el
+    alfabeto. Luego busca la posicion de cada simbolo solicitado y usa ese
+    indice para recuperar los elementos correspondientes de todas las listas
+    paralelas.
+
+    Interpretacion del resultado: para una consulta individual, un numero
+    representa la probabilidad y una tupla contiene primero la probabilidad y
+    luego los valores adicionales. Para una consulta multiple se devuelve una
+    lista con uno de esos resultados por cada simbolo. Si algun simbolo no
+    pertenece al alfabeto, la funcion informa el error mediante ValueError.
+    """
+    todas_las_listas = (probabilidades,) + listas_paralelas
+
+    for lista in todas_las_listas:
+        if len(lista) != len(alfabeto):
+            raise ValueError(
+                "Todas las listas paralelas deben tener la misma longitud que el alfabeto."
+            )
+
+    consulta_multiple = isinstance(simbolo, (list, tuple))
+    simbolos_buscados = simbolo if consulta_multiple else [simbolo]
+    resultados = []
+
+    for simbolo_buscado in simbolos_buscados:
+        try:
+            indice = alfabeto.index(simbolo_buscado)
+        except ValueError:
+            raise ValueError(
+                f"El simbolo {simbolo_buscado!r} no pertenece al alfabeto."
+            )
+
+        valores = tuple(lista[indice] for lista in todas_las_listas)
+
+        if len(valores) == 1:
+            resultados.append(valores[0])
+        else:
+            resultados.append(valores)
+
+    if consulta_multiple:
+        return resultados
+
+    return resultados[0]
