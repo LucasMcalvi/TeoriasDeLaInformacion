@@ -57,7 +57,7 @@ def calcular_restos(conjunto_a, conjunto_b):
                     restos.add(resto)
     return restos
 
-def es_univocamente_decodificable(palabras):
+def es_univocamente_decodificable(palabras, mostrar=False):
     """
     Implementa el algoritmo de Sardinas-Patterson.
 
@@ -85,24 +85,42 @@ def es_univocamente_decodificable(palabras):
     Interpretación del resultado: True significa que toda cadena codificada
     admite una única separación en palabras código. False significa que existe
     al menos una cadena que puede decodificarse de dos maneras diferentes.
+
+    Con mostrar=True imprime cada conjunto C1, C2, ... y la razón por la que
+    termina el algoritmo. Por defecto devuelve el booleano sin imprimir.
+    Las palabras repetidas o vacías hacen que el código no sea unívoco.
     """
 
+    if not es_noSingular(palabras):
+        if mostrar:
+            print("   Hay palabras repetidas: el codigo es singular -> NO univoco")
+        return False
+
     palabras_set = set(palabras)
-
-
+    if "" in palabras_set:
+        if mostrar:
+            print("   Hay una palabra vacia -> NO univoco")
+        return False
 
     # Paso 1: C1 = restos de comparar las palabras originales entre si
     c_actual = calcular_restos(palabras, palabras)
-
     historial = [c_actual]
+    n = 1
 
     while True:
+        if mostrar:
+            print(f"   C{n} = {sorted(c_actual) if c_actual else 'vacio'}")
+
         # Condicion de NO univoco: algun resto coincide con una palabra original
         if c_actual & palabras_set:
+            if mostrar:
+                print(f"   C{n} contiene la palabra {sorted(c_actual & palabras_set)} -> NO univoco")
             return False
 
         # Condicion de SI univoco: no quedan mas restos por resolver
         if not c_actual:
+            if mostrar:
+                print(f"   C{n} es vacio -> univoco")
             return True
 
         # Generamos el siguiente conjunto de restos:
@@ -113,10 +131,13 @@ def es_univocamente_decodificable(palabras):
         # Condicion de SI univoco: si este conjunto ya aparecio antes,
         # estamos en un ciclo que nunca va a generar una colision real
         if siguiente in historial:
+            if mostrar:
+                print(f"   C{n+1} = {sorted(siguiente)} ya aparecio antes (ciclo) -> univoco")
             return True
 
         historial.append(siguiente)
         c_actual = siguiente
+        n += 1
 
 
 
