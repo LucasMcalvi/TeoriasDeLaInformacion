@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Teoría de la Información - Codificación, Compresión y Control de Errores</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+ <style>
+@media print {
+  /* 1. Página en orientación horizontal estándar */
+  @page {
+    size: A4 landscape; /* Se adapta perfectamente al PDF estándar horizontal */
+    margin: 0;
+  }
+
+  /* 2. Desactivar fondos oscuros de pantalla y permitir flujo natural */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    display: block !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* 3. Desactivar el centrado flotante absoluto y wrappers */
+  .global-presentation-wrapper,
+  .presentation-container {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* 4. Ocultar botones de navegación */
+  .controls {
+    display: none !important;
+  }
+
+  /* 5. Forzar cada diapositiva a ocupar exactamente 1 hoja completa (16:9) */
+  .slide {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    box-sizing: border-box !important;
+    padding: 35px 50px 45px 50px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background-color: #f5f8fa !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: hidden !important;
+  }
+
+  /* 6. Evitar que el contenido interno se corte */
+  .content-container {
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 1 !important;
+  }
+
+  /* Ajuste de escala en imágenes/diagramas para que no empujen el footer */
+  .image-container svg {
+    max-width: 90% !important;
+    height: auto !important;
+  }
+
+  .formula-box {
+    margin: 8px auto !important;
+    padding: 8px !important;
+  }
+
+  /* 7. Evitar hoja en blanco final */
+  .slide:last-of-type {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+}
+</style>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0b1d3a;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* BLOQUE CONTENEDOR FIJADO EN EL CENTRO EXACTO DE LA PANTALLA */
+        .global-presentation-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 960px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .presentation-container { position: relative; width: 960px; height: 540px; }
+        
+        .slide {
+            display: none;
+            width: 960px;
+            height: 540px;
+            background-color: #f5f8fa;
+            border-radius: 12px;
+            position: absolute;
+            top: 0; left: 0;
+            padding: 40px 60px 70px 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            flex-direction: column;
+        }
+        .slide.active {
+            display: flex;
+        }
+        
+        .header { width: 100%; text-align: left; margin-bottom: 20px; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        .header h1 { font-size: 28px; color: #0066cc; font-weight: 600; }
+        .header h2 { font-size: 15px; color: #555; font-weight: 400; margin-top: 4px; }
+        
+        .content-container { width: 100%; flex: 1; max-height: 330px; overflow-y: auto; }
+        
+        /* TEXTO CON ALINEACIÓN ESTÁNDAR A LA IZQUIERDA Y VIÑETAS LIMPIAS */
+        .content-container p {
+            font-size: 18px;
+            color: #222;
+            margin-bottom: 12px;
+            line-height: 1.45;
+            text-align: left;
+            position: relative;
+            padding-left: 25px;
+        }
+        .content-container p::before {
+            content: "•";
+            color: #0066cc;
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+        .content-container p.no-bullet::before { content: ""; padding-left: 0; }
+        .content-container p.no-bullet { padding-left: 0; }
+        .content-container p strong { color: #000; }
+        
+        .content-container .sub-p {
+            font-size: 16px;
+            color: #444;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding-left: 45px;
+            position: relative;
+        }
+        .content-container .sub-p::before {
+            content: "-";
+            color: #0066cc;
+            position: absolute;
+            left: 25px;
+            top: 0;
+        }
+        
+        .formula-box { background-color: #eaeff3; padding: 10px; border-radius: 6px; text-align: center; margin: 10px auto; font-size: 19px; width: 100%; max-width: 85%; color: #000; }
+        .slide-table { width: 100%; border-collapse: collapse; margin: 12px auto; font-size: 14px; background: #fff; max-width: 90%; }
+        .slide-table th, .slide-table td { border: 1px solid #ccc; padding: 6px 12px; text-align: left; }
+        .slide-table th { background-color: #eaeff3; font-weight: bold; }
+        
+        .image-container { text-align: center; margin-top: 15px; display: flex; justify-content: center; align-items: center; width: 100%; }
+        .footer { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666; padding: 0 60px; font-style: italic; }
+        
+        .controls { margin-top: 20px; display: flex; gap: 20px; justify-content: center; align-items: center; width: 960px; }
+        .btn { background-color: #0066cc; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .btn:hover { background-color: #004da0; }
+        .counter { color: white; font-size: 16px; }
+        .badge { background: #0066cc; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; vertical-align: middle; margin-left: 8px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <div class="global-presentation-wrapper">
+
+        <div class="presentation-container">
+
+            <div class="slide active">
+                <div class="header">
+                    <h1>Cotas del Código Instantáneo <span class="badge">CLASE 6</span></h1>
+                    <h2>El Límite Teórico de Compresión</h2>
+                </div>
+                <div class="content-container">
+                    <p>Sea una fuente \(S = \{S_1, S_2, ..., S_q\}\) con distribución \(P = \{p_1, p_2, ..., p_q\}\) y un código instantáneo \(C\) construido en un alfabeto \(X\) de orden \(r\). Cada probabilidad \(p_i\) está asociada de forma unívoca a \(S_i\) y a su palabra código \(c_i\).</p>
+                    <p>En base a la inecuación de Kraft-MacMillan, se demuestra de forma analítica que la longitud media \(L\) del código está acotada inferiormente por la entropía del sistema:</p>
+                    <div class="formula-box">\(H_r(S) \le L \le H_r(S) + 1\)</div>
+                    <p>Estaremos ante un **código compacto** perfecto en el caso ideal de cumplirse que \(p_i = r^{-l_i}\). Esto implica que no es posible comprimir un mensaje más allá del límite físico impuesto por la entropía.</p>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>El Primer Teorema de Shannon <span class="badge">CLASE 6</span></h1>
+                    <h2>Codificación de Extensiones sin Ruido</h2>
+                </div>
+                <div class="content-container">
+                    <p>Las cotas elementales aplican a fuentes de memoria nula, por lo que también gobiernan de forma matemática a las extensiones de orden \(n\) de la fuente \(S\):</p>
+                    <div class="formula-box">\(H_r(S^n) \le L_n \le H_r(S^n) + 1\)</div>
+                    <p>Donde \(L_n\) es la longitud media de las palabras de la extensión, calculada como \(L_n = \sum P(\sigma_i) \cdot Y_i\). Sabiendo que la entropía de la extensión cumple \(H_r(S^n) = n \cdot H_r(S)\), dividiendo por \(n\) obtenemos el **Primer Teorema de Shannon**:</p>
+                    <div class="formula-box">\(H_r(S) \le \frac{L_n}{n} < H_r(S) + \frac{1}{n} \implies \lim_{n \to \infty} \left(\frac{L_n}{n}\right) = H_r(S)\)</div>
+                    <p><strong>Conclusión del Teorema:</strong> El número medio de símbolos de código necesarios por cada símbolo de la fuente puede aproximarse tanto a la entropía como se desee. El precio de esta compresión extrema es el aumento exponencial de la complejidad al tener \(q^n\) combinaciones en las tablas.</p>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Rendimiento y Redundancia de un Código <span class="badge">CLASE 6</span></h1>
+                    <h2>Métricas de Eficiencia de Codificación</h2>
+                </div>
+                <div class="content-container">
+                    <p>La eficiencia o **rendimiento (\(\eta\))** de un código digital mide qué tan cerca está la longitud media \(L\) del límite entrópico ideal de la fuente discreta:</p>
+                    <div class="formula-box">\(\eta = \frac{H_r(S)}{L}\)</div>
+                    <p>Por consiguiente, la fracción de bits desperdiciados debido al uso de estructuras no óptimas define la **redundancia (\(R\))** del código:</p>
+                    <div class="formula-box">\(R = 1 - \eta = 1 - \frac{H_r(S)}{L}\)</div>
+                    <p>Un rendimiento del 100% (\(\eta = 1, R = 0\)) ocurre solo si las longitudes de palabra se acoplan de forma entera a la probabilidad de los símbolos. Si un código no está bien diseñado, la redundancia crece afectando el ancho de banda.</p>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Análisis Empírico de Rendimiento <span class="badge">CLASE 6</span></h1>
+                    <h2>Evaluación Comparativa de un Caso de Estudio</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">Consideremos los siguientes esquemas de codificación aplicados a una fuente de ejemplo:</p>
+                    <table class="slide-table">
+                        <thead><tr><th>Símbolo</th><th>Probabilidad</th><th>Código Fijo</th><th>Código Variable</th></tr></thead>
+                        <tbody>
+                            <tr><td>\(S_1\)</td><td>0.4</td><td>00</td><td>0</td></tr>
+                            <tr><td>\(S_2\)</td><td>0.3</td><td>01</td><td>10</td></tr>
+                            <tr><td>\(S_3\)</td><td>0.2</td><td>10</td><td>110</td></tr>
+                            <tr><td>\(S_4\)</td><td>0.1</td><td>11</td><td>111</td></tr>
+                        </tbody>
+                    </table>
+                    <p>Para este sistema, la entropía matemática calcula \(H_2(S) = 1.846\) bits/símbolo. La longitud media del código fijo es \(L = 2.0\) (\(\eta = 92.3\%\)), mientras que el código variable reduce la longitud media a \(L = 1.9\) (\(\eta = 97.1\%\)), minimizando la redundancia estructural.</p>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Algoritmo de Codificación de Huffman <span class="badge">CLASE 6</span></h1>
+                    <h2>Procedimiento Óptimo por Reducción de Símbolos</h2>
+                </div>
+                <div class="content-container">
+                    <p>El **Método de Huffman** es un algoritmo diseñado para construir códigos instantáneos óptimos (compactos) mediante un proceso recursivo de reducción:</p>
+                    <p><strong>Paso 1 (Reducción):</strong> Se ordenan los símbolos de la fuente de forma decreciente según sus probabilidades. Se fusionan los dos símbolos menos probables en un único estado equivalente, cuya probabilidad será la suma de ambos. El proceso se repite hasta obtener solo dos estados.</p>
+                    <p><strong>Paso 2 (Asignación):</strong> Partiendo de la última reducción, se asignan los bits `0` y `1`. Al desandar el camino, los símbolos fusionados heredan el código de su nodo raíz y se diferencian agregando un dígito binario a la derecha de forma arbitraria.</p>
+                    <div class="image-container">
+                        <svg width="450" height="120" viewBox="0 0 450 120" style="background:#fff; border-radius:6px; border:1px solid #ccc; padding:5px;">
+                            <text x="10" y="25" font-size="11" font-weight="bold">Fuente Original</text>
+                            <text x="10" y="55" font-size="11">S1 (0.6)</text>
+                            <text x="10" y="85" font-size="11">S2 (0.2)</text>
+                            <text x="10" y="110" font-size="11">S3 (0.1) --+</text>
+                            <text x="10" y="130" font-size="11" font-weight="none" fill="none">S4 (0.1) --+</text>
+                            <path d="M 90 102 L 150 102" stroke="#ff3333" stroke-width="1.5"/>
+                            <text x="160" y="105" font-size="11">Aux (0.2)</text>
+                            <line x1="210" y1="102" x2="280" y2="70" stroke="#0066cc" stroke-width="1.5"/>
+                            <text x="290" y="70" font-size="11">Fusión Final (0.4)</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Código de Shannon-Fano <span class="badge">CLASE 6</span></h1>
+                    <h2>Metodología Subóptima por División de Conjuntos</h2>
+                </div>
+                <div class="content-container">
+                    <p>El procedimiento de **Shannon-Fano** es un método alternativo y subóptimo para la construcción de códigos variables. Su longitud media alcanza la cota teórica restringida de \(L \le H(S) + 2\).</p>
+                    <p><strong>Pasos del Algoritmo Secuencial:</strong></p>
+                    <p class="sub-p">Ordenar el alfabeto fuente de manera decreciente de acuerdo a sus intensidades de probabilidad probabilística.</p>
+                    <p class="sub-p">Seleccionar un punto de corte \(K\) de modo tal que la diferencia absoluta entre las sumas de ambos subconjuntos sea la mínima posible: \(\min | \sum_{i=1}^{k} P_i - \sum_{i=k+1}^{m} P_i |\).</p>
+                    <p class="sub-p">Asignar un bit `1` a las ramas del subconjunto superior y un bit `0` a las ramas del subconjunto inferior.</p>
+                    <p class="sub-p">Repetir el procedimiento de división de forma recursiva para cada uno de los subconjuntos resultantes hasta que no se puedan realizar más particiones elementales.</p>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Ejemplo de Codificación de Shannon-Fano <span class="badge">CLASE 6</span></h1>
+                    <h2>Mapeo de Particiones de un Alfabeto de 8 Símbolos</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">Aplicación del criterio de bisección sobre una distribución probabilística decreciente compleja:</p>
+                    <table class="slide-table" style="font-size: 13px; margin-top: 5px;">
+                        <thead><tr><th>Símbolo</th><th>Probabilidad</th><th>Paso 1</th><th>Paso 2</th><th>Paso 3</th><th>Palabra Resultante</th></tr></thead>
+                        <tbody>
+                            <tr><td>\(S_1\)</td><td>0.40</td><td>1</td><td>1</td><td>-</td><td>`11`</td></tr>
+                            <tr><td>\(S_2\)</td><td>0.20</td><td>1</td><td>0</td><td>-</td><td>`10`</td></tr>
+                            <tr><td>\(S_3\)</td><td>0.15</td><td>0</td><td>1</td><td>1</td><td>`011`</td></tr>
+                            <tr><td>\(S_4\)</td><td>0.10</td><td>0</td><td>1</td><td>0</td><td>`010`</td></tr>
+                            <tr><td>\(S_5\)</td><td>0.06</td><td>0</td><td>0</td><td>1</td><td>`0011`</td></tr>
+                            <tr><td>\(S_6\)</td><td>0.04</td><td>0</td><td>0</td><td>1</td><td>`0010`</td></tr>
+                            <tr><td>\(S_7\)</td><td>0.03</td><td>0</td><td>0</td><td>0</td><td>`0001`</td></tr>
+                            <tr><td>\(S_8\)</td><td>0.02</td><td>0</td><td>0</td><td>0</td><td>`0000`</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer">Unidad III: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            
+          
+
+           
+            <div class="slide">
+                <div class="header">
+                    <h1>Codificación para Control de Errores <span class="badge">CLASE 8</span></h1>
+                    <h2>Salvaguarda de Datos en Canales no Confiables</h2>
+                </div>
+                <div class="content-container">
+                    <p>Ningún canal de comunicación del mundo físico real está libre de ruidos. Las perturbaciones provocan la modificación involuntaria de los mensajes en tránsito, lo que en el dominio binario representa la **conmutación errónea de ceros por unos y viceversa**.</p>
+                    <p>Los errores estructurales se clasifican de acuerdo a su distribución temporal en:</p>
+                    <p class="sub-p"><strong>Errores Aislados:</strong> Un bit afectado que se encuentra rodeado por un entorno de bits completamente correctos.</p>
+                    <p class="sub-p"><strong>Ráfagas de Errores:</strong> Una secuencia consecutiva de bits contiguos alterados en bloque por ruido térmico o interferencias severas.</p>
+                    <p>Para contrarrestar este fenómeno, se inyecta información de paridad calculada que aumenta artificialmente la redundancia de la señal para permitir la detección y corrección de los datos.</p>
+                </div>
+                <div class="header" style="border-top: 2px solid #0066cc; margin-top:20px; padding-top:5px; border-bottom:none;">
+                    <h1>La Distancia de Hamming <span class="badge">CLASE 8</span></h1>
+                </div>
+                <div class="content-container">
+                    <p>Se define como **Distancia de Hamming** entre dos palabras binarias de igual tamaño al número de posiciones lógicas en las que difieren sus bits:</p>
+                    <div class="formula-box">\(d(01010101, 00001111) = 4 \quad \text{(Se requieren 4 cambios estructurales)}\)</div>
+                    <p>La **distancia de Hamming de un código** representa el valor mínimo de las distancias calculadas entre todas las combinaciones posibles de sus palabras válidas: \(d_{mín} = \min \{d(c_i, c_j)\}\).</p>
+                </div>
+                <div class="footer">Unidad IV: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Capacidad de Detección y Corrección de Errores <span class="badge">CLASE 8</span></h1>
+                    <h2>Teoremas Geométricos de Control de Bloques</h2>
+                </div>
+                <div class="content-container">
+                    <p>La distancia de Hamming de un código impone los límites matemáticos rígidos para el control de errores sobre el canal:</p>
+                    <p><strong>Teorema de Detección:</strong> Para poder detectar de forma garantizada hasta \(\alpha\) errores de bit en una palabra, es condición necesaria y suficiente que la distancia de Hamming mínima del código verifique:</p>
+                    <div class="formula-box">\(d_{min} \ge \alpha + 1 \implies \alpha \le d_{min} - 1\)</div>
+                    <p><strong>Teorema de Corrección:</strong> Para poder corregir de manera automática hasta \(\beta\) errores de bit por esferas de decisión, la distancia de Hamming mínima debe cumplir:</p>
+                    <div class="formula-box">\(d_{min} \ge 2\beta + 1 \implies \beta \le \left\lfloor \frac{d_{min} - 1}{2} \right\rfloor\)</div>
+                    <p>Si un código posee \(d_{min} = 3\), posee la capacidad de detectar hasta 2 errores independientes o, alternativamente, corregir de forma unívoca 1 error simple por aproximación al vecino más cercano.</p>
+                </div>
+                <div class="footer">Unidad IV: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Chequeo de Paridad Vertical y Longitudinal <span class="badge">CLASE 8</span></h1>
+                    <h2>Estructuras Matriciales Cruzadas VRC / LRC</h2>
+                </div>
+                <div class="content-container">
+                    <p>La información se organiza en grupos de \(m\) bloques de longitud fija \(k\), constituyendo una matriz binaria de datos de dimensiones \(k \times m\):</p>
+                    <p><strong>VRC (Vertical Redundancy Checking):</strong> Agrega un bit de paridad al inicio o final de cada bloque vertical.</p>
+                    <p><strong>LRC (Longitudinal Redundancy Checking):</strong> Añade un bloque completo perpendicular horizontal que calcula la paridad longitudinal de las filas.</p>
+                    <p><strong>Bit de Paridad Cruzada:</strong> Un único bit en la esquina inferior que verifica las paridades de los bloques VRC y LRC de forma simultánea.</p>
+                    <table class="slide-table" style="max-width: 60%; font-size: 13px;">
+                        <thead><tr><th>Fila / Columna</th><th>Bloque 1</th><th>Bloque 2</th><th>Paridad LRC</th></tr></thead>
+                        <tbody>
+                            <tr><td>Dato 1</td><td>1</td><td>0</td><td>1 (Criterio Par)</td></tr>
+                            <tr><td>Dato 2</td><td>0</td><td>1</td><td>1 (Criterio Par)</td></tr>
+                            <tr style="background:#eaeff3; font-weight:bold;"><td>Paridad VRC</td><td>1</td><td>1</td><td>0 (Cruzada)</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 5px;">Este entrelazamiento eleva la distancia de Hamming mínima del código a **\(d_{min} = 4\)**, permitiendo detectar hasta 3 errores independientes y corregir cualquier error simple.</p>
+                </div>
+                <div class="footer">Unidad IV: Codificación de Fuentes de Información · Ingeniería Informática · FI UNMDP</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Mecanismo de Corrección de Error Simple <span class="badge">CLASE 8</span></h1>
+                    <h2>Intersección Geométrica de Síndromes de Paridad</h2>
+                </div>
+                <div class="content-container">
+                    <p>Cuando un único bit conmuta su estado durante el transporte, altera simultáneamente la paridad de su columna (VRC) y de su fila (LRC):</p>
+                    <div class="image-container">
+                        <svg width="420" height="150" viewBox="0 0 420 150" style="background:#fff; border-radius:6px; border:1px solid #ccc; padding:10px;">
+                            <rect x="40" y="20" width="30" height="25" fill="#f2f2f2" stroke="#ccc"/><text x="50" y="37" font-size="12">1</text>
+                            <rect x="70" y="20" width="30" height="25" fill="#f2f2f2" stroke="#ccc"/><text x="80" y="37" font-size="12">0</text>
+                            <rect x="100" y="20" width="30" height="25" fill="#ffeaea" stroke="#ff3333" stroke-width="2"/><text x="110" y="37" font-size="12" font-weight="bold" fill="#ff3333">1*</text>
+                            <rect x="140" y="20" width="40" height="25" fill="#e6f2ff" stroke="#0066cc"/><text x="152" y="37" font-size="11" fill="#0066cc">Error</text>
+                            
+                            <rect x="40" y="50" width="30" height="25" fill="#f2f2f2" stroke="#ccc"/><text x="50" y="67" font-size="12">0</text>
+                            <rect x="70" y="50" width="30" height="25" fill="#f2f2f2" stroke="#ccc"/><text x="80" y="67" font-size="12">1</text>
+                            <rect x="100" y="50" width="30" height="25" fill="#f2f2f2" stroke="#ccc"/><text x="110" y="67" font-size="12">0</text>
+                            <rect x="140" y="50" width="40" height="25" fill="#e6f2ff" stroke="#0066cc"/><text x="155" y="67" font-size="11">Ok</text>
+                            
+                            <rect x="40" y="85" width="30" height="25" fill="#e6f2ff" stroke="#0066cc"/><text x="52" y="102" font-size="11">Ok</text>
+                            <rect x="70" y="85" width="30" height="25" fill="#e6f2ff" stroke="#0066cc"><text x="82" y="102" font-size="11">Ok</text></rect>
+                            <rect x="100" y="85" width="30" height="25" fill="#ffeaea" stroke="#ff3333" stroke-width="2"/><text x="108" y="102" font-size="11" font-weight="bold" fill="#ff3333">Error</text>
+                            
+                            <path d="M 115 120 L 115 105" stroke="#ff3333" stroke-width="1.5" marker-end="url(#arrow)"/>
+                            <path d="M 200 32 L 185 32" stroke="#ff3333" stroke-width="1.5"/>
+                            <text x="210" y="35" font-size="11" fill="#ff3333" font-weight="bold">Intersección de Falla</text>
+                        </svg>
+                    </div>
+                    <p style="margin-top: 8px;">Al recibir el bloque, el decodificador realiza de forma obligatoria la compulsa de los síndromes. La **intersección exacta** entre la fila marcada con error y la columna en estado de falla localiza unívocamente al bit alterado, permitiendo su corrección directa por inversión lógica.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Estrategias Avanzadas de Control: Códigos BCH <span class="badge">NUEVO</span></h1>
+                    <h2>Estructuras Cíclicas Multi-Error sobre Campos de Galois</h2>
+                </div>
+                <div class="content-container">
+                    <p>Los **Códigos Bose-Chaudhuri-Hocquenghem (BCH)** constituyen una clase de códigos lineales cíclicos algebraicos de gran relevancia práctica para la detección y corrección de múltiples errores aleatorios por bloque.</p>
+                    <p>Se construyen utilizando polinomios generadores basados en las estructuras algebraicas abstractas de los **Campos de Galois** \(GF(2^m)\). Un código BCH parametrizado como \((n, k, t)\) queda unívocamente definido por:</p>
+                    <p class="sub-p">\(n = 2^m - 1\): Es la longitud total en bits del bloque de la palabra código resultante.</p>
+                    <p class="sub-p">\(k\): El número de bits netos de información útil o de datos de la fuente.</p>
+                    <p class="sub-p">\(t\): La capacidad exacta máxima de corrección del diseño (\(t\) errores independientes por bloque).</p>
+                    <p>Su distancia de Hamming mínima verifica rigurosamente la cota inferior fundamental: \(d_{min} \ge 2t + 1\). El síndrome se calcula mediante polinomios de localización de errores descifrados por algoritmos de decodificación algebraicos.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Códigos Reed-Solomon <span class="badge">NUEVO</span></h1>
+                    <h2>Protección No Binaria de Ráfagas de Errores</h2>
+                </div>
+                <div class="content-container">
+                    <p>Los **Códigos Reed-Solomon (RS)** representan una subclase fundamental de los códigos BCH, con la distinción crítica de ser **estructuras no binarias**. Operan procesando bloques de bits agrupados en símbolos (generalmente bytes de 8 bits).</p>
+                    <p>Un diseño clásico Reed-Solomon \((n, k)\) definido sobre el campo \(GF(2^m)\) establece los siguientes límites combinatorios estructurales:</p>
+                    <div class="formula-box">\(\text{Longitud de bloque (símbolos): } n = 2^m - 1 \quad | \quad \text{Paridad: } n - k = 2t\)</div>
+                    <p><strong>Teorema de Máxima Distancia Separable (MDS):</strong> Los códigos Reed-Solomon alcanzan de forma exacta la cota máxima teórica de distancia de Hamming para cualquier código lineal:</p>
+                    <div class="formula-box">\(d_{min} = n - k + 1 = 2t + 1\)</div>
+                    <p>Dado que el algoritmo procesa símbolos completos, si una ráfaga destruye 8 bits contiguos dentro de un mismo byte, el sistema lo contabiliza como **un único símbolo erróneo**. Debido a esto, son los códigos estándar para CD, DVD, códigos QR y comunicaciones satelitales.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>La Distancia de Levenshtein <span class="badge">NUEVO</span></h1>
+                    <h2>Métrica de Edición para Alfabetos Variables</h2>
+                </div>
+                <div class="content-container">
+                    <p>A diferencia de la distancia de Hamming, que se restringe estrictamente a comparar cadenas de igual longitud, la **Distancia de Levenshtein** (o distancia de edición) mide la discrepancia entre dos secuencias de longitudes variables.</p>
+                    <p>Se define formalmente como el **número mínimo de operaciones elementales** requeridas para transformar una cadena de caracteres en la otra. Las acciones permitidas son tres:</p>
+                    <p class="sub-p"><strong>Inserción:</strong> Agregar un nuevo símbolo en cualquier posición de la cadena.</p>
+                    <p class="sub-p"><strong>Borrado (Eliminación):</strong> Remover un símbolo existente de la secuencia.</p>
+                    <p class="sub-p"><strong>Sustitución:</strong> Reemplazar un carácter por otro diferente (equivale a un cambio de Hamming).</p>
+                    <p><strong>Ejemplo Mapeado de Edición:</strong> Para transformar la palabra `CASA` en `CALLE`, la distancia es 3: Sustituir `S` por `L` (\(\text{CASA} \to \text{CALA}\)), sustituir `A` por `L` (\(\text{CALA} \to \text{CALL}\)), e insertar `E` (\(\text{CALL} \to \text{CALLE}\)).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>La Ley Matemático-Métrica de Levenshtein <span class="badge">NUEVO</span></h1>
+                    <h2>Formulación Dinámica del Límite de Edición</h2>
+                </div>
+                <div class="content-container">
+                    <p>Matemáticamente, la distancia de Levenshtein entre dos cadenas \(X\) (de longitud \(i\)) e \(Y\) (de longitud \(j\)) se calcula mediante la función recursiva por programación dinámica:</p>
+                    <div class="formula-box">
+                        \(\text{lev}_{X,Y}(i,j) = \begin{cases} \max(i,j) & \text{si } \min(i,j) = 0, \\ \min \begin{cases} \text{lev}_{X,Y}(i-1, j) + 1 \\ \text{lev}_{X,Y}(i, j-1) + 1 \\ \text{lev}_{X,Y}(i-1, j-1) + 1_{\left(X_i \neq Y_j\right)} \end{cases} & \text{en otro caso.} \end{cases}\)
+                    </div>
+                    <p>Donde \(1_{\left(X_i \neq Y_j\right)}\) es la función indicadora que vale 0 si los caracteres coinciden y 1 si son diferentes.</p>
+                    <p>Esta métrica es la herramienta fundamental para el diseño de correctores ortográficos automatizados, sistemas de reconocimiento de voz y algoritmos de alineamiento de secuencias en bioinformática, donde las mutaciones de ADN provocan desplazamientos y alteraciones en la longitud de las cadenas.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="changeSlide(-1)">Anterior</button>
+            <span class="counter" id="slide-counter">Diapositiva 1 de 21</span>
+            <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+
+        function showSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (index + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = `Diapositiva ${currentSlide + 1} de ${slides.length}`;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+    </script>
+</body>
+</html>

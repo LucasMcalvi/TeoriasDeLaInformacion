@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Teoría de la Información - Unidad V: Compresión de Datos</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+@media print {
+  /* 1. Página en orientación horizontal estándar */
+  @page {
+    size: A4 landscape; /* Se adapta perfectamente al PDF estándar horizontal */
+    margin: 0;
+  }
+
+  /* 2. Desactivar fondos oscuros de pantalla y permitir flujo natural */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    display: block !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* 3. Desactivar el centrado flotante absoluto y wrappers */
+  .global-presentation-wrapper,
+  .presentation-container {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* 4. Ocultar botones de navegación */
+  .controls {
+    display: none !important;
+  }
+
+  /* 5. Forzar cada diapositiva a ocupar exactamente 1 hoja completa (16:9) */
+  .slide {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    box-sizing: border-box !important;
+    padding: 35px 50px 45px 50px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background-color: #f5f8fa !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: hidden !important;
+  }
+
+  /* 6. Evitar que el contenido interno se corte */
+  .content-container {
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 1 !important;
+  }
+
+  /* Ajuste de escala en imágenes/diagramas para que no empujen el footer */
+  .image-container svg {
+    max-width: 90% !important;
+    height: auto !important;
+  }
+
+  .formula-box {
+    margin: 8px auto !important;
+    padding: 8px !important;
+  }
+
+  /* 7. Evitar hoja en blanco final */
+  .slide:last-of-type {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+}
+</style>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0b1d3a;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* CONTENEDOR FLOTANTE INALTERABLE: FIJA LA PRESENTACIÓN EN EL CENTRO EXACTO DEL NAVEGADOR */
+        .global-presentation-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 960px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .presentation-container { position: relative; width: 960px; height: 540px; }
+        
+        .slide {
+            display: none;
+            width: 960px;
+            height: 540px;
+            background-color: #f5f8fa;
+            border-radius: 12px;
+            position: absolute;
+            top: 0; left: 0;
+            padding: 45px 60px 65px 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            flex-direction: column;
+        }
+        .slide.active {
+            display: flex;
+        }
+        
+        .header { width: 100%; text-align: left; margin-bottom: 20px; border-bottom: 2px solid #0066cc; padding-bottom: 8px; }
+        .header h1 { font-size: 28px; color: #0066cc; font-weight: 600; }
+        .header h2 { font-size: 15px; color: #555; font-weight: 400; margin-top: 4px; }
+        
+        .content-container { width: 100%; flex: 1; max-height: 350px; overflow-y: auto; }
+        
+        /* TEXTO CON ALINEACIÓN NATURAL A LA IZQUIERDA Y VIÑETAS LIMPIAS */
+        .content-container p {
+            font-size: 18px;
+            color: #222;
+            margin-bottom: 12px;
+            line-height: 1.45;
+            text-align: left;
+            position: relative;
+            padding-left: 25px;
+        }
+        .content-container p::before {
+            content: "•";
+            color: #0066cc;
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+        .content-container p.no-bullet::before { content: ""; padding-left: 0; }
+        .content-container p.no-bullet { padding-left: 0; }
+        .content-container p { color: #000; }
+        
+        .content-container .sub-p {
+            font-size: 16px;
+            color: #444;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding-left: 45px;
+            position: relative;
+            text-align: left;
+        }
+        .content-container .sub-p::before {
+            content: "-";
+            color: #0066cc;
+            position: absolute;
+            left: 25px;
+            top: 0;
+        }
+        
+        .formula-box { background-color: #eaeff3; padding: 10px; border-radius: 6px; text-align: center; margin: 10px auto; font-size: 19px; width: 100%; max-width: 85%; color: #000; }
+        .slide-table { width: 100%; border-collapse: collapse; margin: 12px auto; font-size: 14px; background: #fff; max-width: 85%; }
+        .slide-table th, .slide-table td { border: 1px solid #ccc; padding: 6px 12px; text-align: left; }
+        .slide-table th { background-color: #eaeff3; font-weight: bold; }
+        
+        .image-container { text-align: center; margin: 12px auto; display: flex; justify-content: center; align-items: center; width: 100%; }
+        .footer { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666; padding: 0 60px; font-style: italic; }
+        
+        .controls { margin-top: 20px; display: flex; gap: 20px; justify-content: center; align-items: center; width: 960px; }
+        .btn { background-color: #0066cc; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .btn:hover { background-color: #004da0; }
+        .counter { color: white; font-size: 16px; }
+        .badge { background: #0066cc; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; vertical-align: middle; margin-left: 8px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <div class="global-presentation-wrapper">
+
+        <div class="presentation-container">
+
+            <div class="slide active">
+                <div class="header">
+                    <h1>Compresión de Datos e Introducción <span class="badge">UNIDAD V</span></h1>
+                    <h2>Reducción de Volumen y Optimización de Recursos</h2>
+                </div>
+                <div class="content-container">
+                    <p>La **compresión de datos** consiste en reducir el tamaño físico de un archivo de información estructurado de forma deliberada.</p>
+                    <p>Este proceso responde de manera directa a dos necesidades operacionales críticas dentro de los sistemas informáticos actuales:</p>
+                    <p class="sub-p"><strong>Ahorrar espacio:</strong> Maximizar la capacidad de almacenamiento neto al guardar los archivos en los dispositivos físicos.</p>
+                    <p class="sub-p"><strong>Ahorrar tiempo:</strong> Minimizar el tiempo de transferencia necesario al transmitir la información a través de las líneas de un canal.</p>
+                    <p>Esta transformación es físicamente viable debido a que la gran mayoría de los archivos reales (textos, imágenes, ejecutables) poseen un alto grado de redundancia estadística estructural.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Bloques del Sistema Compresor <span class="badge">UNIDAD V</span></h1>
+                    <h2>Mapeo Funcional de la Cadena de Transformación</h2>
+                </div>
+                <div class="content-container">
+                    <p>El procesamiento de los datos se divide en dos etapas operacionales inversas perfectamente acopladas entre sí:</p>
+                    <p><strong>Compresor:</strong> Codifica el mensaje original entrante transformándolo de forma determinística en una representación simbólica secundaria mucho más compacta.</p>
+                    <p><strong>Descompresor:</strong> Decodifica el mensaje compactado recuperando fielmente la cadena original (o una aproximación válida de esta).</p>
+                    <div class="image-container">
+                        <svg width="620" height="90" viewBox="0 0 620 90" style="background:#fff; border-radius:6px; padding:10px; border:1px solid #ccc;">
+                            <rect x="15" y="25" width="95" height="35" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="24" y="47" font-size="11" font-weight="bold" fill="#0066cc">Datos Orig.</text>
+                            <line x1="110" y1="42" x2="160" y2="42" stroke="#555" stroke-width="2"/><polygon points="160,42 152,37 152,47"/>
+                            <circle cx="195" cy="42" r="30" fill="#e2f0d9" stroke="#28a745" stroke-width="2"/><text x="171" y="46" font-size="10" font-weight="bold" fill="#28a745">Compresor</text>
+                            <line x1="225" y1="42" x2="315" y2="42" stroke="#555" stroke-width="3" stroke-dasharray="2"/>
+                            <text x="240" y="32" font-size="9" fill="#666">Código Compacto</text>
+                            <circle cx="345" cy="42" r="30" fill="#e2f0d9" stroke="#28a745" stroke-width="2"/><text x="316" y="46" font-size="9" font-weight="bold" fill="#28a745">Descompresor</text>
+                            <line x1="375" y1="42" x2="425" y2="42" stroke="#555" stroke-width="2"/><polygon points="425,42 417,37 417,47"/>
+                            <rect x="425" y="25" width="95" height="35" rx="4" fill="#eaeff3" stroke="#0066cc" stroke-width="2"/>
+                            <text x="434" y="47" font-size="11" font-weight="bold" fill="#0066cc">Datos Recup.</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Métodos de Compresión: Con y Sin Pérdida <span class="badge">UNIDAD V</span></h1>
+                    <h2>Taxonomía Física e Integridad de la Información</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">De acuerdo con la reversibilidad exacta de la transformación, las estrategias se clasifican en:</p>
+                    <table class="slide-table">
+                        <thead><tr><th>Parámetro</th><th>Métodos Sin Pérdida (\(H_r(S) \le L\))</th><th>Métodos Con Pérdida (\(L < H_r(S)\))</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Integridad</strong></td><td>Datos de salida idénticos bit a bit a los originales. Reversible.</td><td>Los datos recuperados son una aproximación. Irreversible.</td></tr>
+                            <tr><td><strong>Aplicación</strong></td><td>Texto, bases de datos, código fuente, imágenes médicas.</td><td>Fotografía digital, streaming de video, audio comprimido.</td></tr>
+                            <tr><td><strong>Tasas comunes</strong></td><td>Bajas. Generalmente de \(2:1\) (texto) hasta \(4:1\) (imágenes limpias).</td><td>Altas. Desde \(30:1\) (JPEG) hasta más de \(200:1\) (video digital).</td></tr>
+                            <tr><td><strong>Formatos</strong></td><td>ZIP, RAR, GZIP, PNG, FLAC.</td><td>JPEG, MPEG, MP3, MP4, WebP.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Cota Teórica: Primer Teorema de Shannon <span class="badge">UNIDAD V</span></h1>
+                    <h2>El Límite Físico Infranqueable de la Compresión Sin Pérdida</h2>
+                </div>
+                <div class="content-container">
+                    <p>Sea una fuente discreta \(S\) con distribución de probabilidades \(P\). Si codificamos sus símbolos mediante un alfabeto código de orden \(r\), la longitud media de las palabras código (\(L\)) está acotada por la inecuación:</p>
+                    <div class="formula-box">\(H_r(S) \le L \le H_r(S) + 1\)</div>
+                    <p>Al aplicar este análisis sobre **extensiones de orden n** de la fuente, donde la entropía cumple \(H_r(S^n) = n \cdot H_r(S)\), dividiendo por el tamaño del bloque \(n\) se deduce el teorema fundamental:</p>
+                    <div class="formula-box">\(H_r(S) \le \frac{L_n}{n} < H_r(S) + \frac{1}{n} \implies \lim_{n \to \infty} \left(\frac{L_n}{n}\right) = H_r(S)\)</div>
+                    <p><strong>Significado del Límite:</strong> El número medio de caracteres de código requeridos por cada símbolo de la fuente puede aproximarse tanto a la entropía como se desee. "No es posible comprimir sin pérdida más allá de la entropía".</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Métricas de Eficiencia: Rendimiento y Redundancia <span class="badge">UNIDAD V</span></h1>
+                    <h2>Evaluación Cuantitativa del Aprovechamiento del Código</h2>
+                </div>
+                <div class="content-container">
+                    <p>Para juzgar la calidad y compacidad de un esquema unívoco, se definen dos coeficientes relativos basados en la longitud media de sus palabras código:</p>
+                    <p><strong>Rendimiento o Eficiencia (\(\eta\)):</strong> Expresa la fracción de uso óptimo en base al límite inferior teórico provisto por la entropía de la fuente:</p>
+                    <div class="formula-box">\(\eta = \frac{H_r(S)}{L}\)</div>
+                    <p><strong>Redundancia del Código (\(1-\eta\)):</strong> Cuantifica la proporción de dígitos binarios o bits desperdiciados debido al uso de estructuras no óptimas:</p>
+                    <div class="formula-box">1 - \eta = \frac{L - H_r(S)}{L}</div>
+                    <p>La redundancia es mínima (\(1-\eta = 0\)) y el rendimiento máximo (\(\eta = 1\)) si y solo si la longitud media alcanza el límite entrópico exacto (\(L = H_r(S)\)).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Clasificación de Métodos Sin Pérdida <span class="badge">UNIDAD V</span></h1>
+                    <h2>Estrategias Estadísticas y Basadas en Diccionario</h2>
+                </div>
+                <div class="content-container">
+                    <p>Los algoritmos diseñados para conservar la integridad absoluta de las cadenas de datos se dividen lógicamente en dos grandes categorías conceptuales de procesamiento:</p>
+                    <p><strong>Algoritmos Estadísticos:</strong> Operan procesando y codificando un único símbolo de la fuente a la vez. Su compresión se basa en asignar palabras más cortas a los elementos que tienen alta probabilidad de aparición (ej. Huffman, Shannon-Fano).</p>
+                    <p><strong>Algoritmos Basados en Diccionario:</strong> Operan codificando secuencias completas o bloques de símbolos repetitivos. Reemplazan las cadenas de caracteres largas por índices numéricos apuntados a una tabla dinámica (ej. familia Lempel-Ziv LZW, LZ77).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Modelos Estadísticos: Dinámica de Tablas <span class="badge">UNIDAD V</span></h1>
+                    <h2>Esquemas Estáticos, Semiestáticos y Adaptativos</h2>
+                </div>
+                <div class="content-container">
+                    <p>De acuerdo con la forma en que se construye y actualiza la tabla de probabilidades, se definen tres arquitecturas de comportamiento:</p>
+                    <p><strong>Estáticos:</strong> Utilizan una única tabla precalculada de forma externa e invariable (modelo universal). Requieren una sola pasada sobre el archivo, pero si la fuente difiere de la hipótesis inicial, la eficiencia colapsa.</p>
+                    <p><strong>Semiestáticos:</strong> Realizan dos pasadas por los datos: la primera analiza el archivo para construir una distribución de probabilidades a medida, y la segunda codifica. Se adaptan perfectamente al mensaje, pero exigen almacenar la tabla junto con el código.</p>
+                    <p><strong>Adaptativos o Dinámicos:</strong> Realizan una sola pasada. Inician con un modelo uniforme y van modificando dinámicamente la codificación a medida que se procesa cada símbolo, sin necesidad de transmitir la tabla. Requieren mayor costo computacional.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>El Algoritmo de Codificación de Huffman <span class="badge">UNIDAD V</span></h1>
+                    <h2>Metodología Recursiva para la Construcción de Códigos Compactos</h2>
+                </div>
+                <div class="content-container">
+                    <p>Diseñado por David A. Huffman en 1952, este algoritmo construye códigos instantáneos óptimos mediante un ordenamiento estocástico estructurado en dos fases:</p>
+                    <p><strong>1) Fase de Reducción (Hacia Adelante):</strong> Se disponen los símbolos de la fuente de forma decreciente de probabilidades. Se fusionan los dos elementos menos probables en un estado equivalente con probabilidad igual a la suma de ambos. El proceso se repite de forma cíclica hasta reducir el sistema a solo dos estados terminales.</p>
+                    <p><strong>2) Fase de Asignación (Hacia Atrás):</strong> Partiendo de los dos estados finales, se les asignan arbitrariamente los bits `0` y `1`. Al desandar el camino de reducciones, las ramas secundarias heredan el código del nodo raíz y se diferencian agregando un bit (`0` o `1`) a su derecha.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Ejemplo Práctico de Reducción de Huffman <span class="badge">UNIDAD V</span></h1>
+                    <h2>Mapeo de Fusiones y Asignación Binaria de Bits</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">Sea una fuente con 4 símbolos ordenados decrecientemente por sus intensidades de probabilidad:</p>
+                    <table class="slide-table">
+                        <thead><tr><th>Símbolo Fuente</th><th>Probabilidad</th><th>Paso 1 (Fusión)</th><th>Palabra Código Final</th></tr></thead>
+                        <tbody>
+                            <tr><td>\(S_1\)</td><td>0.6</td><td>0.6 (Hereda `0`)</td><td>`0`</td></tr>
+                            <tr><td>\(S_2\)</td><td>0.2</td><td>0.2 (Hereda `10`)</td><td>`10`</td></tr>
+                            <tr><td>\(S_3\)</td><td>0.1</td><td rowspan="2">\(0.1 + 0.1 = \mathbf{0.2}\) (Fusión)</td><td>`110`</td></tr>
+                            <tr><td>\(S_4\)</td><td>0.1</td><td>`111`</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 10px;">La longitud media de este código compacto calcula: \(L = 0.6 \cdot 1 + 0.2 \cdot 2 + 0.1 \cdot 3 + 0.1 \cdot 3 = 1.6 \text{ binits}\). Si calculáramos la entropía de este sistema, comprobaríamos de forma exacta la restricción fundamental: \(H_2(S) \le 1.6\).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>El Método de Codificación de Shannon-Fano <span class="badge">UNIDAD V</span></h1>
+                    <h2>Procedimiento Subóptimo por Bisección de Conjuntos Ponderados</h2>
+                </div>
+                <div class="content-container">
+                    <p>La codificación de **Shannon-Fano** es una estrategia estadística variable y subóptima, cuya longitud media está acotada superiormente bajo el criterio \(L \le H(S) + 2\).</p>
+                    <p><strong>Pasos Mecánicos para la Partición de Bloques:</strong></p>
+                    <p class="sub-p">Ordenar los símbolos del alfabeto de la fuente de manera decreciente según sus probabilidades.</p>
+                    <p class="sub-p">Dividir el conjunto en dos subbloques mediante un punto de corte \(K\) que garantice que la diferencia absoluta entre las sumas de sus probabilidades sea la mínima posible.</p>
+                    <p class="sub-p">Asignar de forma unívoca un bit diferencial (`1` a las ramas superiores y `0` a las ramas inferiores).</p>
+                    <p class="sub-p">Repetir el procedimiento de división balanceada de forma recursiva para cada uno de los subconjuntos hasta que ya no se puedan realizar más particiones.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Ejemplo de Particiones de Shannon-Fano <span class="badge">UNIDAD V</span></h1>
+                    <h2>Mapeo Recursivo sobre un Alfabeto de 8 Símbolos</h2>
+                </div>
+                <div class="content-container">
+                    <p class="no-bullet">Aplicación de los cortes sucesivos de mínima diferencia absoluta sobre la distribución de la fuente:</p>
+                    <table class="slide-table" style="font-size: 13px; margin-top: 5px;">
+                        <thead><tr><th>Símbolo</th><th>Probabilidad</th><th>Paso 1</th><th>Paso 2</th><th>Paso 3</th><th>Palabra Código</th></tr></thead>
+                        <tbody>
+                            <tr><td>\(S_1\)</td><td>0.40</td><td>1</td><td>1</td><td>-</td><td>`11`</td></tr>
+                            <tr><td>\(S_2\)</td><td>0.20</td><td>1</td><td>0</td><td>-</td><td>`10`</td></tr>
+                            <tr><td>\(S_3\)</td><td>0.15</td><td>0</td><td>1</td><td>1</td><td>`011`</td></tr>
+                            <tr><td>\(S_4\)</td><td>0.10</td><td>0</td><td>1</td><td>0</td><td>`010`</td></tr>
+                            <tr><td>\(S_5\)</td><td>0.06</td><td>0</td><td>0</td><td>1</td><td>`0011`</td></tr>
+                            <tr><td>\(S_6\)</td><td>0.04</td><td>0</td><td>0</td><td>1</td><td>`0010`</td></tr>
+                            <tr><td>\(S_7\)</td><td>0.03</td><td>0</td><td>0</td><td>0</td><td>`0001`</td></tr>
+                            <tr><td>\(S_8\)</td><td>0.02</td><td>0</td><td>0</td><td>0</td><td>`0000`</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>La Restricción Teórica de los Bits Fraccionales <span class="badge">UNIDAD V</span></h1>
+                    <h2>Por qué Huffman no siempre logra igualar la Entropía</h2>
+                </div>
+                <div class="content-container">
+                    <p>Aunque Huffman garantiza un código óptimo por símbolo, rara vez empata el límite exacto de la entropía \(H(S)\). Esto se debe a la imposibilidad de asignar **bits fraccionales**, requiriendo al menos 1 bit entero por palabra.</p>
+                    <p><strong>Ejemplo de Falla Estremecedora (Distribución Sesgada):</strong> Sea una fuente binaria con \(P(S_1) = 0.99\) y \(P(S_2) = 0.01\). La entropía real calcula un valor extremadamente bajo de:</p>
+                    <div class="formula-box">\(H(S) = 0.99 \log_2\left(\frac{1}{0.99}\right) + 0.01 \log_2\left(\frac{1}{0.01}\right) = 0.0808 \text{ bits/símbolo}\)</div>
+                    <p>Las longitudes ideales teóricas serían \(l_1 = 0.0145\) y \(l_2 = 6.644\). Sin embargo, Huffman se ve forzado a asignar palabras de 1 bit enteros a ambos estados (\(S_1 \rightarrow 0, S_2 \rightarrow 1\)), dando una longitud media \(L = 1.0 \text{ binit}\) y arrojando una ineficiente redundancia de \(1.84\).</p>
+                    <p>La performance del sistema mejora agrupando extensiones largas o mediante la **Codificación Aritmética**, que elude la barrera del bit entero mapeando secuencias en un rango numérico fraccional.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Código Run Length Coding (RLC) <span class="badge">UNIDAD V</span></h1>
+                    <h2>Compresión Lineal por Sustitución de Ráfagas Repetitivas</h2>
+                </div>
+                <div class="content-container">
+                    <p>El algoritmo **Run Length Coding (RLC)** prescinde de los pesos probabilísticos de símbolos aislados y opera comprimiendo secuencias idénticas contiguas mediante un par ordenado que almacena el carácter y su conteo de ráfaga:</p>
+                    <div class="formula-box">\(\text{Cadena original: } AAAAAAAAABBBAAAAAAAA \longrightarrow \text{Código RLC: } A9B3A8\)</div>
+                    <p><strong>Aplicación Crítica en Imágenes Binarias (Blanco y Negro):</strong> Sabiendo que los píxeles `0` y `1` se alternan de forma sistemática en ráfagas espaciales, y asumiendo por convención inicial que el primer píxel de la línea es un `0`, se puede optimizar el código transmitiendo **exclusivamente la cantidad de repeticiones**.</p>
+                    <p>La performance del RLC está supuesta por el largo de las ráfagas. En mapas de bits uniformes o faxes logra tasas extremas donde \(L < H(S)\), pero sobre texto literario ordinario resulta ineficiente arrojando valores de \(L > H(S)\).</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+            <div class="slide">
+                <div class="header">
+                    <h1>Estrategias de Compresión Con Pérdida <span class="badge">UNIDAD V</span></h1>
+                    <h2>Modelos Basados en la Tolerancia Perceptual Humana</h2>
+                </div>
+                <div class="content-container">
+                    <p>Los métodos de compresión con pérdida buscan comprimir analizando detenidamente la función final y destino del archivo de datos informático.</p>
+                    <p>Se diseñan algoritmos que descartan información jugando con los límites de sensibilidad y capacidad de diferenciación de los sentidos biológicos del ser humano:</p>
+                    <p class="sub-p"><strong>Ojo Humano (Imagen y Video):</strong> Se reduce la señal combinando zonas de color similar bajo una tolerancia estocástica. En transmisiones de video televisivas se explota la persistencia retiniana reduciendo el número de imágenes fijas por segundo.</p>
+                    <p class="sub-p"><strong>Oído Humano (Audio Digital):</strong> Se eliminan los rangos de frecuencias inaudibles o sonidos tapados por el fenómeno de enmascaramiento acústico.</p>
+                    <p><strong>Ejemplo Práctico Campo de Juego:</strong> En la transmisión de un partido de fútbol, la cámara digital captura infinitas tonalidades de verde en el césped. Al comprimir (JPEG/MPEG), se unifica el área enviando solo unos pocos tonos planos. El usuario no percibe la pérdida y se ahorran megabytes en el canal.</p>
+                </div>
+                <div class="footer">Teoría de la Información y la Comunicación · Ingeniería Informática · Facultad de Ingeniería · Universidad Nacional de Mar del Plata</div>
+            </div>
+
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="changeSlide(-1)">Anterior</button>
+            <span class="counter" id="slide-counter">Diapositiva 1 de 14</span>
+            <button class="btn" onclick="changeSlide(1)">Siguiente</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+
+        function showSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (index + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = `Diapositiva ${currentSlide + 1} de ${slides.length}`;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+    </script>
+</body>
+</html>

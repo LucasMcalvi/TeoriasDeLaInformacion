@@ -125,7 +125,7 @@ def explicar_transponer():
 def explicar_generaVectorEstacionario():
     """
     Para aproximar el vector estacionario comence con una distribucion
-    uniforme, con probabilidad 1/n en cada estado. Luego aplique treinta veces
+    uniforme, con probabilidad 1/n en cada estado. Luego aplique cincuenta veces
     la relacion pi_nuevo = M pi. Si la cadena converge, el resultado se acerca
     a un vector que cumple M pi = pi y cuya suma es 1.
 
@@ -324,7 +324,7 @@ def explicar_entropia_fuente():
 def explicar_get_longitudMedia():
     """
     Para obtener la longitud media pondere la longitud de cada palabra por la
-    probabilidad del simbolo fuente que representa:
+    probabilidad del simbolo fuente que representa
 
         L_media = sumatoria P(si) li.
 
