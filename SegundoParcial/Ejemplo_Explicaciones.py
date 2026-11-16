@@ -3,8 +3,7 @@ Ejemplo de uso de Explicaciones.py con los datos del parcial 2025.
 ESTE ARCHIVO NO SE ENTREGA: es para leer las interpretaciones mientras
 escribís las respuestas. Lo que se entrega es Parcial_Ej1.py / Parcial_Ej2.py.
 
-Necesita en la misma carpeta: Explicaciones.py, Formulas.py,
-FormulasCodificacion.py, Func_clase4.py, Func_clase5.py y Func_clase6.py.
+Necesita en la misma carpeta: FuncionesParcial2.py y Explicaciones.py.
 
 Para el parcial: cambiá MENSAJE, N, ENTRADA y SALIDA y corrélo.
 """

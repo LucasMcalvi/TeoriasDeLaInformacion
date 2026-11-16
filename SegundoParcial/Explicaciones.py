@@ -27,29 +27,26 @@ Para los ejercicios completos del parcial:
 
 ayuda() lista todas las funciones que se pueden explicar.
 
-Necesita en la misma carpeta: Formulas.py, FormulasCodificacion.py,
-Func_clase4.py, Func_clase5.py y Func_clase6.py.
+Necesita en la misma carpeta: FuncionesParcial2.py (todas las funciones).
 """
 
 import math
 import sys
 
-from Formulas import CalcEntropia
-from Func_clase4 import (extension_fuente, extension_codigo, detalle_primer_teorema,
-                         cumple_primer_teorema, rendimiento_redundancia, distancia_hamming,
-                         analizar_codigo_hamming, distancia_levenshtein, byte_con_paridad,
-                         verificar_byte, filas_de_bits, analizar_matriz_paridad,
-                         generar_mensaje_con_paridad, recuperar_mensaje, huffman, shannon_fano)
-from Func_clase5 import (alfabeto_y_probabilidades, resumen_codigo, decodificar_cadena,
-                         codificar_mensaje, decodificar_mensaje, tasa_compresion,
-                         tasa_compresion_codigo, rlc_texto, rlc_comprimir, rlc_descomprimir)
-from Func_clase6 import (canal_desde_secuencias, matriz_canal, probabilidades_salida,
-                         probabilidades_simultaneas, probabilidades_a_posteriori,
-                         entropias_a_posteriori, equivocacion, perdida, entropia_afin,
-                         informacion_mutua, analisis_canal, es_sin_ruido, es_determinante,
-                         canal_serie, es_reduccion_suficiente, matriz_determinante_reduccion,
-                         reducir_canal, es_uniforme, capacidad_canal, capacidad_binaria,
-                         probabilidad_error)
+from FuncionesParcial2 import (
+    CalcEntropia,
+    extension_fuente, extension_codigo, detalle_primer_teorema, cumple_primer_teorema,
+    rendimiento_redundancia, distancia_hamming, analizar_codigo_hamming, distancia_levenshtein,
+    byte_con_paridad, verificar_byte, filas_de_bits, analizar_matriz_paridad,
+    generar_mensaje_con_paridad, recuperar_mensaje, huffman, shannon_fano,
+    alfabeto_y_probabilidades, resumen_codigo, decodificar_cadena, codificar_mensaje,
+    decodificar_mensaje, tasa_compresion, tasa_compresion_codigo, rlc_texto, rlc_comprimir,
+    rlc_descomprimir,
+    canal_desde_secuencias, matriz_canal, probabilidades_salida, probabilidades_simultaneas,
+    probabilidades_a_posteriori, entropias_a_posteriori, equivocacion, perdida, entropia_afin,
+    informacion_mutua, analisis_canal, es_sin_ruido, es_determinante, canal_serie,
+    es_reduccion_suficiente, matriz_determinante_reduccion, reducir_canal, es_uniforme,
+    capacidad_canal, capacidad_binaria, probabilidad_error)
 
 # Dos valores se consideran iguales si difieren en menos de esto (así el caso
 # marcado coincide con lo que se ve redondeado a 4 decimales).
