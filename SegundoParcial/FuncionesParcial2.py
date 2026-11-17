@@ -95,7 +95,7 @@ def GeneraPalabra (N, alfabeto, probabilidades):  #dado un int, un array alfabet
     for i in range(N):
         r = random.random()
         j=0
-        while (r >= fdp[j]):
+        while (j < Nalfab - 1 and r >= fdp[j]):  # si las probs suman un poco menos de 1 (redondeo), cae en el último
             j+=1
         lista_pal.append(alfabeto[j])
 
@@ -123,6 +123,8 @@ def DevuelveExtyFdp (alfabeto, fdp, N): #Dado un alfabeto, una lista de probabil
     secuencias posibles de longitud N y sus probabilidades. Si la distribución
     original suma uno, la distribución extendida también debería hacerlo.
     """
+    if N < 1:
+        raise ValueError("El orden N de la extensión debe ser >= 1.")
     if N==1:
         return alfabeto.copy(),fdp.copy()
 
@@ -175,6 +177,8 @@ def generaalfabetoyTransicion(cadena):  #genera el alfabeto y la matriz de trans
     #divido matriz
     for j in range (n):
         total_columna = sum(mat[i][j] for i in range(n))
+        if total_columna == 0:   # símbolo que solo aparece al final: no tiene transiciones observadas
+            continue
         for i in range (n):
             mat[i][j] = mat[i][j]/total_columna
 
@@ -680,8 +684,10 @@ def entropia_fuente(palabras, probabilidades):
 
     #calcula la entropia de la fuente a partir de una lista de  palabras codigo de una codificacion y sus probabilidades
 
+    # OJO: 'palabras' son las PALABRAS CÓDIGO (ej. ["11","01","00","10"]), no los
+    # símbolos de la fuente: la base sale de los símbolos que usan las palabras.
     set_palabras = set("".join(palabras))
-    base = len(set_palabras)
+    base = max(2, len(set_palabras))   # mínimo 2, igual que _orden_alfabeto (log en base 1 no existe)
 
     return sum([p*math.log(1/p, base) for p in probabilidades if p>0])
 
@@ -713,15 +719,101 @@ def es_compacto(palabras, probabilidades):
     #Devuelve True si es compacto o False si no lo es
 
     if (es_univocamente_decodificable(palabras)):
-        base = len(set("".join(palabras)))
+        base = max(2, len(set("".join(palabras))))
 
         for palabra, p in zip(palabras, probabilidades):
-            if not len(palabra) <= math.ceil(math.log(1/p, base)):
+            if p > 0 and not len(palabra) <= math.ceil(math.log(1/p, base)):  # p = 0: sin tope
                 return False
 
         return True
     else:
         return False
+
+
+def _longitud_media_minima(probabilidades, r=2):
+    """
+    Longitud media mínima posible para esas probabilidades con un alfabeto
+    código de r símbolos: la L del código de Huffman r-ario. Si hace falta,
+    agrega símbolos ficticios de probabilidad 0 para que (q - 1) sea múltiplo
+    de (r - 1), y en cada paso une los r grupos menos probables.
+    """
+    probs = list(probabilidades)
+    q = len(probs)
+    if q == 0:
+        raise ValueError("La lista de probabilidades está vacía.")
+    if r < 2:
+        raise ValueError("El alfabeto código debe tener al menos 2 símbolos.")
+    if q == 1:
+        return probs[0] * 1          # un solo símbolo: palabra de longitud 1
+
+    ficticios = (r - 1 - (q - 1) % (r - 1)) % (r - 1)
+    grupos = [[p, [i]] for i, p in enumerate(probs)] + [[0.0, []] for _ in range(ficticios)]
+    profundidad = [0] * q
+    while len(grupos) > 1:
+        grupos.sort(key=lambda g: g[0])
+        unidos, grupos = grupos[:r], grupos[r:]
+        indices = []
+        for p, ids in unidos:
+            for i in ids:
+                profundidad[i] += 1      # cada unión suma un símbolo a esas palabras
+            indices += ids
+        grupos.append([sum(g[0] for g in unidos), indices])
+    return sum(p * l for p, l in zip(probs, profundidad))
+
+
+def es_compacto_segundoparcial(palabras, probabilidades, r=None):
+    """
+    Qué es:
+        Verifica si un código es COMPACTO con la definición de la cátedra:
+        es unívocamente decodificable y su longitud media L es la menor
+        posible para esa fuente (ningún código unívoco con el mismo alfabeto
+        código tiene L menor).
+
+    Para qué se usa:
+        Para el segundo parcial (U4-U6). Reemplaza a es_compacto, que usa el
+        criterio l_i <= techo(log_r(1/p_i)) del primer parcial y puede decir
+        False para códigos óptimos (por ejemplo, Huffman con empates).
+
+    Algoritmo:
+        1. Si no es unívoco (Sardinas-Patterson) -> False.
+        2. Calcula la L mínima posible con Huffman r-ario (el código de
+           Huffman es compacto, así que su L es la mínima).
+        3. Es compacto si L del código == L mínima (con tolerancia de
+           redondeo).
+
+    Cómo interpretar el resultado:
+        - True: el código es unívoco y no se puede acortar su L; cumple el
+          Primer Teorema (H_r <= L < H_r + 1).
+        - False: o es ambiguo (no unívoco) o existe otro código con L menor
+          (por ejemplo el de Huffman): el código se puede mejorar.
+        - Varios códigos distintos pueden ser compactos para la misma fuente
+          (empates en Huffman): todos tienen la misma L.
+
+    Parámetros:
+        palabras: palabras código, paralelas a probabilidades.
+        probabilidades: probabilidades de cada símbolo de la fuente.
+        r: tamaño del alfabeto código (opcional; si no se da, se deduce de
+           los símbolos que usan las palabras, mínimo 2).
+    Devuelve:
+        bool.
+
+    Ejemplo:
+        >>> es_compacto_segundoparcial(["0", "10", "110", "111"], [1/3, 1/3, 1/4, 1/12])
+        True
+        >>> es_compacto_segundoparcial(["00", "01", "1"], [0.5, 0.25, 0.25])
+        False
+    """
+    palabras = list(palabras)
+    probabilidades = list(probabilidades)
+    if len(palabras) != len(probabilidades):
+        raise ValueError("palabras y probabilidades deben tener la misma cantidad de elementos.")
+    if not es_univocamente_decodificable(palabras):
+        return False
+    if r is None:
+        r = max(2, len(get_alfabetoCodigo(palabras)))
+    l_codigo = get_longitudMedia(palabras, probabilidades)
+    l_minima = _longitud_media_minima(probabilidades, r)
+    return l_codigo <= l_minima + 1e-9
 
 def generar_mensaje(N, palabras, probabilidades):
     """
@@ -1264,7 +1356,7 @@ def filas_de_bits(cadena, ancho=8):
     Devuelve:
         list de str.
     """
-    cadena = cadena.strip()
+    cadena = "".join(cadena.split())   # saca espacios y saltos de línea (también los del medio)
     if len(cadena) % ancho:
         raise ValueError(f"La cadena tiene {len(cadena)} bits, que no es múltiplo de {ancho}.")
     return [cadena[i:i + ancho] for i in range(0, len(cadena), ancho)]
@@ -1908,11 +2000,15 @@ def decodificar_mensaje(secuencia, alfabeto, codigos):
 
     Parámetros:
         secuencia: bytes o bytearray con el formato de codificar_mensaje.
+                   Si se pasa un string de bits (por ejemplo "1100111001"),
+                   se decodifica directamente con decodificar_cadena.
         alfabeto: string o lista con los símbolos de la fuente.
         codigos: lista de palabras binarias, paralela al alfabeto.
     Devuelve:
         str.
     """
+    if isinstance(secuencia, str):
+        return "".join(decodificar_cadena(secuencia, list(alfabeto), codigos))
     if len(secuencia) == 0:
         return ""
     relleno = secuencia[0]
@@ -2212,7 +2308,13 @@ def canal_desde_secuencias(entrada, salida):
     Parámetros:
         entrada, salida: strings de igual longitud (el carácter k de la
                          salida es lo que salió al entrar el carácter k).
+                         Los espacios y saltos de línea se ignoran (por si
+                         la secuencia se copió separada en grupos).
     """
+    if isinstance(entrada, str):
+        entrada = "".join(entrada.split())
+    if isinstance(salida, str):
+        salida = "".join(salida.split())
     if len(entrada) != len(salida):
         raise ValueError("Las secuencias de entrada y salida deben tener la misma longitud.")
     if not entrada:
