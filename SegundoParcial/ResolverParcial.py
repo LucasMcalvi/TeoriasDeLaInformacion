@@ -1,0 +1,231 @@
+"""
+ResolverParcial.py
+==================
+UN SOLO ARCHIVO PARA TODO EL PARCIAL.
+
+1. Pegá los datos en el bloque DATOS DEL PARCIAL (abajo).
+2. Corré:   python ResolverParcial.py
+3. Te imprime, en orden:
+     PARTE 1  RESPUESTAS PARA LOS CASILLEROS (los números, 4 decimales)
+     PARTE 2  EXPLICACIÓN DE CADA RESULTADO (qué significa + frase)
+     PARTE 3  TEXTOS PARA "EXPLICAR" Y "CONCLUIR" de cada ejercicio
+     PARTE 4  EXTRAS por si piden algo más (Shannon-Fano, RLC, a posteriori, ...)
+   Todo queda guardado también en  resultado_parcial.txt  (en la misma carpeta).
+
+Necesita en la misma carpeta: FuncionesParcial2.py y Explicaciones.py.
+ESTE ARCHIVO NO SE ENTREGA. Lo que se entrega es Parcial_Ej1.py / Parcial_Ej2.py.
+"""
+
+# ============================ DATOS DEL PARCIAL ============================
+# Ejercicio 1: el mensaje de la fuente y el orden de la extensión.
+MENSAJE = "GIIHGGGHGIHHIHIIGFHH"
+N = 3
+
+# Ejercicio 2: secuencias de entrada y salida del canal.
+ENTRADA = "10100000101011101001111110011001"
+SALIDA = "QQPQQPPQQQPQRRRQSPQSQRQSQQPSQQPP"
+
+# Opcionales (dejar vacíos si no los piden):
+CODIGO_HAMMING = []          # ej.: ["0000", "0011", "1010", "0101"] -> distancia de Hamming del código
+LEVENSHTEIN = ("", "")       # ej.: ("casa", "calle")               -> distancia de Levenshtein
+# ===========================================================================
+
+import sys
+from Explicaciones import *
+from Explicaciones import _H
+
+
+class _Duplicar:
+    """Escribe todo lo que se imprime en pantalla y en resultado_parcial.txt."""
+    def __init__(self, ruta):
+        self.archivo = open(ruta, "w", encoding="utf-8")
+        self.pantalla = sys.stdout
+        self.encoding = getattr(sys.stdout, "encoding", "utf-8")
+
+    def write(self, texto):
+        try:
+            self.pantalla.write(texto)
+        except UnicodeEncodeError:
+            self.pantalla.write(texto.encode(self.encoding or "ascii", "replace").decode(self.encoding or "ascii"))
+        self.archivo.write(texto)
+
+    def flush(self):
+        self.pantalla.flush()
+        self.archivo.flush()
+
+
+sys.stdout = _Duplicar("resultado_parcial.txt")
+
+
+def titulo(texto):
+    print("\n" + "#" * 78)
+    print("#  " + texto)
+    print("#" * 78 + "\n")
+
+
+def f4(x):
+    return f"{x:.4f}"
+
+
+def ver_matriz(m, filas, cols):
+    print("        " + "".join(f"{str(c):>9}" for c in cols))
+    for a, fila in zip(filas, m):
+        print(f"   {str(a):>4} " + "".join(f"{x:9.4f}" for x in fila))
+
+
+hay_ej1 = bool(MENSAJE)
+hay_ej2 = bool(ENTRADA) and bool(SALIDA)
+if hay_ej2 and len(ENTRADA) != len(SALIDA):
+    print(f"ERROR: ENTRADA tiene {len(ENTRADA)} símbolos y SALIDA {len(SALIDA)}; tienen que tener el mismo largo.")
+    hay_ej2 = False
+es_binaria = hay_ej2 and set(ENTRADA) <= {"0", "1"} and len(ENTRADA) % 8 == 0 and len(ENTRADA) >= 16
+
+# =============================== CÁLCULOS ==================================
+if hay_ej1:
+    alfabeto, probs1 = alfabeto_y_probabilidades(MENSAJE)
+    codigo = huffman(probs1)
+    r1 = resumen_codigo(probs1, codigo)
+    probs_ext = extension_fuente(probs1, N)
+    codigo_ext = huffman(probs_ext)
+    rn = resumen_codigo(probs_ext, codigo_ext)
+    d1 = detalle_primer_teorema(probs1, codigo, 1)
+    dn = detalle_primer_teorema(probs1, codigo_ext, N)
+    tasa = tasa_compresion_codigo(MENSAJE, alfabeto, codigo)
+
+if hay_ej2:
+    A, probs2, B, matriz = canal_desde_secuencias(ENTRADA, SALIDA)
+    sin_ruido, determinante = es_sin_ruido(matriz), es_determinante(matriz)
+    clase = {(True, True): "Ambos", (True, False): "Sin ruido",
+             (False, True): "Determinante", (False, False): "Ninguno"}[(sin_ruido, determinante)]
+    h_ab, h_ba, i_ab = equivocacion(probs2, matriz), perdida(probs2, matriz), informacion_mutua(probs2, matriz)
+    reducido = reducir_canal(matriz)
+    if len(matriz) == 2:
+        cap, p_cap = capacidad_binaria(reducido, 0.0001)
+    else:
+        cap, _tipo = capacidad_canal(reducido)
+        p_cap = None
+    pe = probabilidad_error(probs2, matriz)
+    paridad = analizar_matriz_paridad(filas_de_bits(ENTRADA)) if es_binaria else None
+
+# ===================== PARTE 1: RESPUESTAS (CASILLEROS) =====================
+titulo("PARTE 1 - RESPUESTAS PARA LOS CASILLEROS")
+
+if hay_ej1:
+    print("EJERCICIO 1")
+    print("  a) Probabilidades:")
+    for s, p in zip(alfabeto, probs1):
+        print(f"       P({s}) = {f4(p)}")
+    print(f"     Entropía H(S) = {f4(r1['H'])}")
+    print("  b) Código óptimo (Huffman) para la fuente:")
+    for s, c in zip(alfabeto, codigo):
+        print(f"       {s} -> {c}")
+    print(f"  c) Tasa de compresión = {f4(tasa)} : 1")
+    print(f"  d) Código óptimo para la extensión de orden {N}: {len(codigo_ext)} palabras (ver PARTE 4)")
+    print("  e) Código para la fuente:")
+    print(f"       L = {f4(r1['L'])}   η = {f4(r1['rendimiento'])}   R = {f4(r1['redundancia'])}")
+    print(f"     Código para la extensión de orden {N}:")
+    print(f"       L = {f4(rn['L'])}   η = {f4(rn['rendimiento'])}   R = {f4(rn['redundancia'])}"
+          f"   (L/{N} = {f4(rn['L'] / N)} por símbolo)")
+    print("  f) Primer Teorema de Shannon:")
+    print(f"       Fuente:    {'Cumple' if d1['cumple'] else 'No cumple'}   "
+          f"({f4(d1['H'])} <= {f4(d1['Ln_sobre_n'])} < {f4(d1['cota_superior'])})")
+    print(f"       Extensión: {'Cumple' if dn['cumple'] else 'No cumple'}   "
+          f"({f4(dn['H'])} <= {f4(dn['Ln_sobre_n'])} < {f4(dn['cota_superior'])})")
+    print()
+
+if hay_ej2:
+    print("EJERCICIO 2")
+    print("  a) Probabilidades a priori:")
+    for a, p in zip(A, probs2):
+        print(f"       P({a}) = {f4(p)}")
+    print("     Matriz del canal:")
+    ver_matriz(matriz, A, B)
+    print(f"  b) Clasificación: {clase}")
+    print(f"  c) H(A/B) = {f4(h_ab)}   H(B/A) = {f4(h_ba)}   I(A,B) = {f4(i_ab)}")
+    print("  d) Canal reducido:" + ("" if len(reducido[0]) < len(matriz[0]) else " (no admite reducciones suficientes; queda igual)"))
+    ver_matriz(reducido, A, [f"col{j + 1}" for j in range(len(reducido[0]))])
+    if p_cap is not None:
+        print(f"  e) Capacidad C = {f4(cap)}   con P({A[0]}) = {f4(p_cap)}   P({A[1]}) = {f4(1 - p_cap)}")
+    else:
+        print(f"  e) Capacidad C = {cap}")
+    print(f"     Probabilidad de error P_E = {f4(pe)}")
+    if paridad is not None:
+        if paridad["mensaje"]:
+            print(f"  f) Mensaje corregido: {paridad['mensaje']}   ({paridad['estado']})")
+        else:
+            print("  f) Mensaje: NO se puede corregir (hay más de un error)")
+
+# ================== PARTE 2: EXPLICACIÓN DE CADA RESULTADO ==================
+titulo("PARTE 2 - QUÉ SIGNIFICA CADA RESULTADO (y frase para el parcial)")
+
+if hay_ej1:
+    print(">>> EJERCICIO 1\n")
+    explicar(alfabeto_y_probabilidades, MENSAJE)
+    explicar(CalcEntropia, probs1)
+    explicar(huffman, probs1)
+    explicar(tasa_compresion_codigo, MENSAJE, alfabeto, codigo)
+    explicar(resumen_codigo, probs1, codigo)
+    explicar_extension(probs1, N)
+    explicar(detalle_primer_teorema, probs1, codigo, 1)
+    explicar(detalle_primer_teorema, probs1, codigo_ext, N)
+
+if hay_ej2:
+    print(">>> EJERCICIO 2\n")
+    explicar(canal_desde_secuencias, ENTRADA, SALIDA)
+    explicar(es_sin_ruido, matriz)
+    explicar(es_determinante, matriz)
+    explicar(equivocacion, probs2, matriz)
+    explicar(perdida, probs2, matriz)
+    explicar(informacion_mutua, probs2, matriz)
+    explicar(reducir_canal, matriz)
+    if p_cap is not None:
+        explicar(capacidad_binaria, reducido, 0.0001)
+    else:
+        explicar(capacidad_canal, reducido)
+    explicar(probabilidad_error, probs2, matriz)
+    if paridad is not None:
+        explicar(analizar_matriz_paridad, filas_de_bits(ENTRADA))
+
+# ============== PARTE 3: TEXTOS PARA "EXPLICAR" Y "CONCLUIR" ===============
+titulo('PARTE 3 - TEXTOS PARA LAS PREGUNTAS "EXPLICAR" Y "CONCLUIR"')
+
+if hay_ej1:
+    explicacion_ej1(MENSAJE, N)
+    print()
+    conclusiones_ej1(MENSAJE, N)
+    print("\n")
+if hay_ej2:
+    explicacion_ej2(ENTRADA, SALIDA)
+    print()
+    conclusiones_ej2(ENTRADA, SALIDA)
+
+# ===================== PARTE 4: EXTRAS (por si los piden) ===================
+titulo("PARTE 4 - EXTRAS POR SI PIDEN ALGO MÁS")
+
+if hay_ej1:
+    print("Código de Huffman de la extensión de orden", N, "(bloque -> palabra):")
+    simbolos_ext = [""]
+    for _ in range(N):
+        simbolos_ext = [e + s for e in simbolos_ext for s in alfabeto]
+    for s, p, c in zip(simbolos_ext, probs_ext, codigo_ext):
+        print(f"   {s}  P = {p:.6f}  ->  {c}")
+    print()
+    explicar(shannon_fano, probs1)
+    explicar(rlc_comprimir, MENSAJE)
+
+if hay_ej2:
+    nombres_canal(A, B)
+    explicar(probabilidades_salida, probs2, matriz)
+    explicar(probabilidades_a_posteriori, probs2, matriz)
+    explicar(entropias_a_posteriori, probs2, matriz)
+    explicar(entropia_afin, probs2, matriz)
+    explicar(analisis_canal, probs2, matriz)
+    explicar(probabilidad_error, probs2, matriz, a_posteriori=True)
+    explicar(es_uniforme, matriz)
+
+if len(CODIGO_HAMMING) >= 2:
+    explicar(analizar_codigo_hamming, CODIGO_HAMMING)
+if LEVENSHTEIN[0] or LEVENSHTEIN[1]:
+    explicar(distancia_levenshtein, LEVENSHTEIN[0], LEVENSHTEIN[1])
+
+print("\n(Todo esto quedó guardado en resultado_parcial.txt)")

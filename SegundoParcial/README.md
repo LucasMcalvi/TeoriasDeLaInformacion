@@ -1,5 +1,9 @@
 # Segundo Parcial (unidades 4, 5 y 6)
 
+## Mañana: `ResolverParcial.py`
+
+Pegás `MENSAJE`, `N`, `ENTRADA` y `SALIDA` arriba, corrés `python ResolverParcial.py` y te imprime (y guarda en `resultado_parcial.txt`): las respuestas para los casilleros, qué significa cada resultado, los textos para "explicar" y "concluir", y extras. Necesita `FuncionesParcial2.py` y `Explicaciones.py` en la misma carpeta. **No se entrega.**
+
 ## Para el parcial se usan dos archivos
 
 - **`FuncionesParcial2.py`**: todas las fórmulas en un solo archivo (`from FuncionesParcial2 import *`).
