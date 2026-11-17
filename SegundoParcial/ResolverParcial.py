@@ -10,6 +10,8 @@ UN SOLO ARCHIVO PARA TODO EL PARCIAL.
      PARTE 2  EXPLICACIÓN DE CADA RESULTADO (qué significa + frase)
      PARTE 3  TEXTOS PARA "EXPLICAR" Y "CONCLUIR" de cada ejercicio
      PARTE 4  EXTRAS por si piden algo más (Shannon-Fano, RLC, a posteriori, ...)
+     PARTE 5  OTROS DATOS: probabilidades, un código dado, una matriz de canal,
+              canales en serie, Hamming, Levenshtein, paridad, RLC (si los completás)
    Todo queda guardado también en  resultado_parcial.txt  (en la misma carpeta).
 
 Necesita en la misma carpeta: FuncionesParcial2.py y Explicaciones.py.
@@ -25,13 +27,32 @@ N = 3
 ENTRADA = "10100000101011101001111110011001"
 SALIDA = "QQPQQPPQQQPQRRRQSPQSQRQSQQPSQQPP"
 
-# Opcionales (dejar vacíos si no los piden):
+# -------- OTROS DATOS: completá SOLO lo que te den (lo vacío se saltea) --------
+# Fuente dada por sus PROBABILIDADES (en vez de un mensaje):
+PROBS = []                   # ej.: [0.5, 0.2, 0.3]
+N_PROBS = 2                  # orden de la extensión para esa fuente
+
+# Un CÓDIGO ya armado para evaluar (sobre PROBS; si PROBS está vacío, sobre el MENSAJE).
+# Si tiene q**n palabras se toma como código de la extensión de orden n.
+CODIGO = []                  # ej.: ["11", "010", "00"]
+CADENA_A_DECODIFICAR = ""    # ej.: "ABACBAACAB..." -> se decodifica con CODIGO
+
+# Canal dado por su MATRIZ (en vez de secuencias). Filas = entradas, columnas = salidas.
+MATRIZ = []                  # ej.: [[0.6, 0.4], [0.2, 0.8]]
+PRIORI = []                  # ej.: [0.5, 0.5]   (vacío = entradas equiprobables)
+MATRIZ2 = []                 # segundo canal, para CANALES EN SERIE (MATRIZ y después MATRIZ2)
+
+# Control de errores y compresión:
 CODIGO_HAMMING = []          # ej.: ["0000", "0011", "1010", "0101"] -> distancia de Hamming del código
 LEVENSHTEIN = ("", "")       # ej.: ("casa", "calle")               -> distancia de Levenshtein
+TEXTO_PARIDAD = ""           # ej.: "HOLA" -> se protege con paridad vertical, longitudinal y cruzada
+BITS_PARIDAD = ""            # tira de bits, o lista de filas de 8 bits, para detectar/corregir
+RLC = ""                     # ej.: "AAAABBBCCDAA" -> Run Length Coding
 # ===========================================================================
 
 from Explicaciones import *
 from Explicaciones import _imprimir
+from FuncionesParcial2 import clasifica, calcular_kraft, es_instantaneo
 
 
 def mostrar(*partes):
@@ -203,10 +224,115 @@ if hay_ej2:
     explicar(probabilidad_error, probs2, matriz, a_posteriori=True)
     explicar(es_uniforme, matriz)
 
+# ================ PARTE 5: OTROS DATOS (solo si los completaste) ================
+hay_otros = bool(PROBS or CODIGO or MATRIZ or len(CODIGO_HAMMING) >= 2 or LEVENSHTEIN[0] or
+                 LEVENSHTEIN[1] or TEXTO_PARIDAD or BITS_PARIDAD or RLC)
+if hay_otros:
+    titulo("PARTE 5 - OTROS DATOS")
+
+# ---- Fuente dada por probabilidades ----
+if PROBS:
+    titulo("FUENTE DADA POR PROBABILIDADES")
+    explicar(CalcEntropia, PROBS)
+    cod_p = explicar(huffman, PROBS)
+    explicar(resumen_codigo, PROBS, cod_p)
+    explicar(shannon_fano, PROBS)
+    if N_PROBS > 1:
+        ext_p = explicar_extension(PROBS, N_PROBS)
+        explicar(detalle_primer_teorema, PROBS, ext_p["codigo"], N_PROBS)
+
+# ---- Código dado para evaluar ----
+if CODIGO:
+    titulo("CÓDIGO DADO: " + ", ".join(CODIGO))
+    base = PROBS if PROBS else (probs1 if hay_ej1 else [])
+    clase_cod = clasifica(CODIGO)
+    kraft = calcular_kraft(CODIGO)
+    mostrar(f"Clasificación del código: {clase_cod}")
+    mostrar(f"Suma de Kraft = {kraft:.4f}  ->  " + (
+        "cumple Kraft (<= 1): existe un código instantáneo con esas longitudes." if kraft <= 1 + 1e-9 else
+        "NO cumple Kraft (> 1): con esas longitudes no puede haber código unívoco."))
+    mostrar("")
+    if not base:
+        mostrar("(Para L, rendimiento y Primer Teorema hacen falta las probabilidades: completá PROBS.)")
+    else:
+        q = len(base)
+        n_cod = 0
+        for k in range(1, 7):
+            if q ** k == len(CODIGO):
+                n_cod = k
+        if n_cod == 0:
+            mostrar(f"OJO: el código tiene {len(CODIGO)} palabras y la fuente {q} símbolos "
+                    f"(no es q**n): revisá que correspondan.")
+        else:
+            probs_cod = extension_fuente(base, n_cod) if n_cod > 1 else base
+            explicar(rendimiento_redundancia, probs_cod, CODIGO)
+            explicar(detalle_primer_teorema, base, CODIGO, n_cod)
+            if n_cod == 1 and N_PROBS > 1 and PROBS:
+                mostrar(f"Extensión de orden {N_PROBS} usando ESTE código (concatenando palabras):")
+                explicar(detalle_primer_teorema, base, extension_codigo(CODIGO, N_PROBS), N_PROBS)
+    if CADENA_A_DECODIFICAR:
+        if hay_ej1 and not PROBS and len(alfabeto) == len(CODIGO):
+            simbolos_cod = list(alfabeto)
+        else:
+            simbolos_cod = [f"S{i + 1}" for i in range(len(CODIGO))]
+        if es_instantaneo(CODIGO):
+            explicar(decodificar_cadena, CADENA_A_DECODIFICAR, simbolos_cod, CODIGO)
+        else:
+            mostrar("El código no es instantáneo: no se puede decodificar palabra por palabra.")
+
+# ---- Canal dado por su matriz ----
+if MATRIZ:
+    titulo("CANAL DADO POR SU MATRIZ")
+    nombres_canal()
+    pri = PRIORI if PRIORI else [1 / len(MATRIZ)] * len(MATRIZ)
+    if not PRIORI:
+        mostrar(f"(No se dieron probabilidades a priori: se usan equiprobables {[round(x, 4) for x in pri]})")
+    mostrar("")
+    explicar(es_sin_ruido, MATRIZ)
+    explicar(es_determinante, MATRIZ)
+    explicar(probabilidades_salida, pri, MATRIZ)
+    explicar(probabilidades_simultaneas, pri, MATRIZ)
+    explicar(probabilidades_a_posteriori, pri, MATRIZ)
+    explicar(entropias_a_posteriori, pri, MATRIZ)
+    explicar(equivocacion, pri, MATRIZ)
+    explicar(perdida, pri, MATRIZ)
+    explicar(entropia_afin, pri, MATRIZ)
+    explicar(informacion_mutua, pri, MATRIZ)
+    explicar(analisis_canal, pri, MATRIZ)
+    red_m = explicar(reducir_canal, MATRIZ)
+    explicar(es_uniforme, MATRIZ)
+    if len(MATRIZ) == 2:
+        explicar(capacidad_binaria, red_m, 0.0001)
+    else:
+        explicar(capacidad_canal, MATRIZ)
+    explicar(probabilidad_error, pri, MATRIZ)
+    explicar(probabilidad_error, pri, MATRIZ, a_posteriori=True)
+    if MATRIZ2:
+        titulo("CANALES EN SERIE (MATRIZ y después MATRIZ2)")
+        serie = explicar(canal_serie, MATRIZ, MATRIZ2)
+        i_1 = informacion_mutua(pri, MATRIZ)
+        i_s = informacion_mutua(pri, serie)
+        mostrar(f"I(A,B) del primer canal = {i_1:.4f}   I(A,C) del canal en serie = {i_s:.4f}")
+        mostrar("Frase: " + (
+            f"La información mutua del canal en serie ({i_s:.4f}) es menor que la del primer canal "
+            f"({i_1:.4f}): al pasar por el segundo canal se pierde información." if i_s < i_1 - 5e-5 else
+            f"La información mutua del canal en serie ({i_s:.4f}) es igual a la del primer canal: el "
+            "segundo canal no hace perder información."))
+        mostrar("")
+
+# ---- Control de errores y compresión ----
 if len(CODIGO_HAMMING) >= 2:
     explicar(analizar_codigo_hamming, CODIGO_HAMMING)
 if LEVENSHTEIN[0] or LEVENSHTEIN[1]:
     explicar(distancia_levenshtein, LEVENSHTEIN[0], LEVENSHTEIN[1])
+if TEXTO_PARIDAD:
+    explicar(generar_mensaje_con_paridad, TEXTO_PARIDAD)
+if BITS_PARIDAD:
+    filas_p = filas_de_bits(BITS_PARIDAD) if isinstance(BITS_PARIDAD, str) else list(BITS_PARIDAD)
+    explicar(analizar_matriz_paridad, filas_p)
+if RLC:
+    explicar(rlc_texto, RLC)
+    explicar(rlc_comprimir, RLC)
 
 guardar_registro("resultado_parcial.txt")
 mostrar("\n(Todo esto quedó guardado en resultado_parcial.txt)")
