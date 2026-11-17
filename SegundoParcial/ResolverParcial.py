@@ -30,37 +30,17 @@ CODIGO_HAMMING = []          # ej.: ["0000", "0011", "1010", "0101"] -> distanci
 LEVENSHTEIN = ("", "")       # ej.: ("casa", "calle")               -> distancia de Levenshtein
 # ===========================================================================
 
-import sys
 from Explicaciones import *
-from Explicaciones import _H
+from Explicaciones import _imprimir
 
 
-class _Duplicar:
-    """Escribe todo lo que se imprime en pantalla y en resultado_parcial.txt."""
-    def __init__(self, ruta):
-        self.archivo = open(ruta, "w", encoding="utf-8")
-        self.pantalla = sys.stdout
-        self.encoding = getattr(sys.stdout, "encoding", "utf-8")
-
-    def write(self, texto):
-        try:
-            self.pantalla.write(texto)
-        except UnicodeEncodeError:
-            self.pantalla.write(texto.encode(self.encoding or "ascii", "replace").decode(self.encoding or "ascii"))
-        self.archivo.write(texto)
-
-    def flush(self):
-        self.pantalla.flush()
-        self.archivo.flush()
-
-
-sys.stdout = _Duplicar("resultado_parcial.txt")
+def mostrar(*partes):
+    """Como print: imprime en pantalla y lo anota para guardarlo en resultado_parcial.txt."""
+    _imprimir(" ".join(str(p) for p in partes))
 
 
 def titulo(texto):
-    print("\n" + "#" * 78)
-    print("#  " + texto)
-    print("#" * 78 + "\n")
+    mostrar("\n" + "#" * 78 + "\n#  " + texto + "\n" + "#" * 78 + "\n")
 
 
 def f4(x):
@@ -68,15 +48,15 @@ def f4(x):
 
 
 def ver_matriz(m, filas, cols):
-    print("        " + "".join(f"{str(c):>9}" for c in cols))
+    mostrar("        " + "".join(f"{str(c):>9}" for c in cols))
     for a, fila in zip(filas, m):
-        print(f"   {str(a):>4} " + "".join(f"{x:9.4f}" for x in fila))
+        mostrar(f"   {str(a):>4} " + "".join(f"{x:9.4f}" for x in fila))
 
 
 hay_ej1 = bool(MENSAJE)
 hay_ej2 = bool(ENTRADA) and bool(SALIDA)
 if hay_ej2 and len(ENTRADA) != len(SALIDA):
-    print(f"ERROR: ENTRADA tiene {len(ENTRADA)} símbolos y SALIDA {len(SALIDA)}; tienen que tener el mismo largo.")
+    mostrar(f"ERROR: ENTRADA tiene {len(ENTRADA)} símbolos y SALIDA {len(SALIDA)}; tienen que tener el mismo largo.")
     hay_ej2 = False
 es_binaria = hay_ej2 and set(ENTRADA) <= {"0", "1"} and len(ENTRADA) % 8 == 0 and len(ENTRADA) >= 16
 
@@ -111,55 +91,55 @@ if hay_ej2:
 titulo("PARTE 1 - RESPUESTAS PARA LOS CASILLEROS")
 
 if hay_ej1:
-    print("EJERCICIO 1")
-    print("  a) Probabilidades:")
+    mostrar("EJERCICIO 1")
+    mostrar("  a) Probabilidades:")
     for s, p in zip(alfabeto, probs1):
-        print(f"       P({s}) = {f4(p)}")
-    print(f"     Entropía H(S) = {f4(r1['H'])}")
-    print("  b) Código óptimo (Huffman) para la fuente:")
+        mostrar(f"       P({s}) = {f4(p)}")
+    mostrar(f"     Entropía H(S) = {f4(r1['H'])}")
+    mostrar("  b) Código óptimo (Huffman) para la fuente:")
     for s, c in zip(alfabeto, codigo):
-        print(f"       {s} -> {c}")
-    print(f"  c) Tasa de compresión = {f4(tasa)} : 1")
-    print(f"  d) Código óptimo para la extensión de orden {N}: {len(codigo_ext)} palabras (ver PARTE 4)")
-    print("  e) Código para la fuente:")
-    print(f"       L = {f4(r1['L'])}   η = {f4(r1['rendimiento'])}   R = {f4(r1['redundancia'])}")
-    print(f"     Código para la extensión de orden {N}:")
-    print(f"       L = {f4(rn['L'])}   η = {f4(rn['rendimiento'])}   R = {f4(rn['redundancia'])}"
+        mostrar(f"       {s} -> {c}")
+    mostrar(f"  c) Tasa de compresión = {f4(tasa)} : 1")
+    mostrar(f"  d) Código óptimo para la extensión de orden {N}: {len(codigo_ext)} palabras (ver PARTE 4)")
+    mostrar("  e) Código para la fuente:")
+    mostrar(f"       L = {f4(r1['L'])}   η = {f4(r1['rendimiento'])}   R = {f4(r1['redundancia'])}")
+    mostrar(f"     Código para la extensión de orden {N}:")
+    mostrar(f"       L = {f4(rn['L'])}   η = {f4(rn['rendimiento'])}   R = {f4(rn['redundancia'])}"
           f"   (L/{N} = {f4(rn['L'] / N)} por símbolo)")
-    print("  f) Primer Teorema de Shannon:")
-    print(f"       Fuente:    {'Cumple' if d1['cumple'] else 'No cumple'}   "
+    mostrar("  f) Primer Teorema de Shannon:")
+    mostrar(f"       Fuente:    {'Cumple' if d1['cumple'] else 'No cumple'}   "
           f"({f4(d1['H'])} <= {f4(d1['Ln_sobre_n'])} < {f4(d1['cota_superior'])})")
-    print(f"       Extensión: {'Cumple' if dn['cumple'] else 'No cumple'}   "
+    mostrar(f"       Extensión: {'Cumple' if dn['cumple'] else 'No cumple'}   "
           f"({f4(dn['H'])} <= {f4(dn['Ln_sobre_n'])} < {f4(dn['cota_superior'])})")
-    print()
+    mostrar("")
 
 if hay_ej2:
-    print("EJERCICIO 2")
-    print("  a) Probabilidades a priori:")
+    mostrar("EJERCICIO 2")
+    mostrar("  a) Probabilidades a priori:")
     for a, p in zip(A, probs2):
-        print(f"       P({a}) = {f4(p)}")
-    print("     Matriz del canal:")
+        mostrar(f"       P({a}) = {f4(p)}")
+    mostrar("     Matriz del canal:")
     ver_matriz(matriz, A, B)
-    print(f"  b) Clasificación: {clase}")
-    print(f"  c) H(A/B) = {f4(h_ab)}   H(B/A) = {f4(h_ba)}   I(A,B) = {f4(i_ab)}")
-    print("  d) Canal reducido:" + ("" if len(reducido[0]) < len(matriz[0]) else " (no admite reducciones suficientes; queda igual)"))
+    mostrar(f"  b) Clasificación: {clase}")
+    mostrar(f"  c) H(A/B) = {f4(h_ab)}   H(B/A) = {f4(h_ba)}   I(A,B) = {f4(i_ab)}")
+    mostrar("  d) Canal reducido:" + ("" if len(reducido[0]) < len(matriz[0]) else " (no admite reducciones suficientes; queda igual)"))
     ver_matriz(reducido, A, [f"col{j + 1}" for j in range(len(reducido[0]))])
     if p_cap is not None:
-        print(f"  e) Capacidad C = {f4(cap)}   con P({A[0]}) = {f4(p_cap)}   P({A[1]}) = {f4(1 - p_cap)}")
+        mostrar(f"  e) Capacidad C = {f4(cap)}   con P({A[0]}) = {f4(p_cap)}   P({A[1]}) = {f4(1 - p_cap)}")
     else:
-        print(f"  e) Capacidad C = {cap}")
-    print(f"     Probabilidad de error P_E = {f4(pe)}")
+        mostrar(f"  e) Capacidad C = {cap}")
+    mostrar(f"     Probabilidad de error P_E = {f4(pe)}")
     if paridad is not None:
         if paridad["mensaje"]:
-            print(f"  f) Mensaje corregido: {paridad['mensaje']}   ({paridad['estado']})")
+            mostrar(f"  f) Mensaje corregido: {paridad['mensaje']}   ({paridad['estado']})")
         else:
-            print("  f) Mensaje: NO se puede corregir (hay más de un error)")
+            mostrar("  f) Mensaje: NO se puede corregir (hay más de un error)")
 
 # ================== PARTE 2: EXPLICACIÓN DE CADA RESULTADO ==================
 titulo("PARTE 2 - QUÉ SIGNIFICA CADA RESULTADO (y frase para el parcial)")
 
 if hay_ej1:
-    print(">>> EJERCICIO 1\n")
+    mostrar(">>> EJERCICIO 1\n")
     explicar(alfabeto_y_probabilidades, MENSAJE)
     explicar(CalcEntropia, probs1)
     explicar(huffman, probs1)
@@ -170,7 +150,7 @@ if hay_ej1:
     explicar(detalle_primer_teorema, probs1, codigo_ext, N)
 
 if hay_ej2:
-    print(">>> EJERCICIO 2\n")
+    mostrar(">>> EJERCICIO 2\n")
     explicar(canal_desde_secuencias, ENTRADA, SALIDA)
     explicar(es_sin_ruido, matriz)
     explicar(es_determinante, matriz)
@@ -191,25 +171,25 @@ titulo('PARTE 3 - TEXTOS PARA LAS PREGUNTAS "EXPLICAR" Y "CONCLUIR"')
 
 if hay_ej1:
     explicacion_ej1(MENSAJE, N)
-    print()
+    mostrar("")
     conclusiones_ej1(MENSAJE, N)
-    print("\n")
+    mostrar("\n")
 if hay_ej2:
     explicacion_ej2(ENTRADA, SALIDA)
-    print()
+    mostrar("")
     conclusiones_ej2(ENTRADA, SALIDA)
 
 # ===================== PARTE 4: EXTRAS (por si los piden) ===================
 titulo("PARTE 4 - EXTRAS POR SI PIDEN ALGO MÁS")
 
 if hay_ej1:
-    print("Código de Huffman de la extensión de orden", N, "(bloque -> palabra):")
+    mostrar("Código de Huffman de la extensión de orden", N, "(bloque -> palabra):")
     simbolos_ext = [""]
     for _ in range(N):
         simbolos_ext = [e + s for e in simbolos_ext for s in alfabeto]
     for s, p, c in zip(simbolos_ext, probs_ext, codigo_ext):
-        print(f"   {s}  P = {p:.6f}  ->  {c}")
-    print()
+        mostrar(f"   {s}  P = {p:.6f}  ->  {c}")
+    mostrar("")
     explicar(shannon_fano, probs1)
     explicar(rlc_comprimir, MENSAJE)
 
@@ -228,4 +208,5 @@ if len(CODIGO_HAMMING) >= 2:
 if LEVENSHTEIN[0] or LEVENSHTEIN[1]:
     explicar(distancia_levenshtein, LEVENSHTEIN[0], LEVENSHTEIN[1])
 
-print("\n(Todo esto quedó guardado en resultado_parcial.txt)")
+guardar_registro("resultado_parcial.txt")
+mostrar("\n(Todo esto quedó guardado en resultado_parcial.txt)")

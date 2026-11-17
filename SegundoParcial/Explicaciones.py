@@ -31,7 +31,6 @@ Necesita en la misma carpeta: FuncionesParcial2.py (todas las funciones).
 """
 
 import math
-import sys
 
 from FuncionesParcial2 import (
     CalcEntropia,
@@ -148,12 +147,22 @@ def _bloque(titulo, resultado, significa, obtuvo, casos, frase, notas=None):
     return "\n".join(out)
 
 
+REGISTRO = []   # todo lo que se imprime, para poder guardarlo en un archivo
+
+
 def _imprimir(texto):
+    REGISTRO.append(str(texto))
     try:
         print(texto)
     except UnicodeEncodeError:
-        cod = getattr(sys.stdout, "encoding", None) or "ascii"
-        print(texto.encode(cod, "replace").decode(cod))
+        # consola que no acepta acentos: se reemplazan para que no se corte
+        print(str(texto).encode("ascii", "replace").decode("ascii"))
+
+
+def guardar_registro(ruta):
+    """Guarda en un archivo de texto todo lo que se imprimió hasta ahora."""
+    with open(ruta, "w", encoding="utf-8") as archivo:
+        archivo.write("\n".join(REGISTRO) + "\n")
 
 
 def _lista(nombres):
