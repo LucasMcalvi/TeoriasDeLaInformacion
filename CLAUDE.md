@@ -10,4 +10,4 @@ Repo de Lucas para la materia **Teoría de la Información y la Comunicación** 
 
 - El código de Lucas solo puede importar `math` y `random` (más sus propios módulos). Nunca agregues otros imports.
 - Para cualquier número de las unidades 4-6, calculalo con `SegundoParcial/FuncionesParcial2.py`; no lo calcules a mano ni de memoria.
-- Para corregir lo que hizo Lucas: skill `corregir-parcial-tic`. Para resolver un enunciado: skill `resolver-parcial-tic`.
+- Cuando Lucas pida revisar o corregir lo que está haciendo, usá la skill `corregir-parcial-tic` sobre **el archivo en el que está trabajando** (el que tiene abierto o el que nombre): no lo modifiques, recalculá cada resultado con `FuncionesParcial2.py` y juzgá con la teoría de la cátedra (`.claude/skills/corregir-parcial-tic/teoria_resumen.md`). Para resolver un enunciado desde cero: skill `resolver-parcial-tic`.
