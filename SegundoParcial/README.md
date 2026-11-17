@@ -4,6 +4,10 @@
 
 Pegás `MENSAJE`, `N`, `ENTRADA` y `SALIDA` arriba (y, si el parcial da otra cosa, los datos opcionales: `PROBS`, `CODIGO`, `CADENA_A_DECODIFICAR`, `MATRIZ`, `PRIORI`, `MATRIZ2`, `CODIGO_HAMMING`, `LEVENSHTEIN`, `TEXTO_PARIDAD`, `BITS_PARIDAD`, `RLC`), corrés `python ResolverParcial.py` y te imprime (y guarda en `resultado_parcial.txt`): las respuestas para los casilleros, qué significa cada resultado, los textos para "explicar" y "concluir", y extras. Necesita `FuncionesParcial2.py` y `Explicaciones.py` en la misma carpeta. **No se entrega.**
 
+## Para revisar lo que hiciste: `Verificar.py`
+
+Cargás los datos y TUS respuestas en `TUS_RESPUESTAS` y te dice casillero por casillero BIEN o MAL con el valor correcto (calculado con las funciones verificadas). Con Claude Code: skill `corregir-parcial-tic`.
+
 ## Para el parcial se usan dos archivos
 
 - **`FuncionesParcial2.py`**: todas las fórmulas en un solo archivo (`from FuncionesParcial2 import *`).
