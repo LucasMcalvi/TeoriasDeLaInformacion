@@ -2,7 +2,7 @@
 
 ## Mañana: `ResolverParcial.py`
 
-Pegás `MENSAJE`, `N`, `ENTRADA` y `SALIDA` arriba, corrés `python ResolverParcial.py` y te imprime (y guarda en `resultado_parcial.txt`): las respuestas para los casilleros, qué significa cada resultado, los textos para "explicar" y "concluir", y extras. Necesita `FuncionesParcial2.py` y `Explicaciones.py` en la misma carpeta. **No se entrega.**
+Pegás `MENSAJE`, `N`, `ENTRADA` y `SALIDA` arriba (y, si el parcial da otra cosa, los datos opcionales: `PROBS`, `CODIGO`, `CADENA_A_DECODIFICAR`, `MATRIZ`, `PRIORI`, `MATRIZ2`, `CODIGO_HAMMING`, `LEVENSHTEIN`, `TEXTO_PARIDAD`, `BITS_PARIDAD`, `RLC`), corrés `python ResolverParcial.py` y te imprime (y guarda en `resultado_parcial.txt`): las respuestas para los casilleros, qué significa cada resultado, los textos para "explicar" y "concluir", y extras. Necesita `FuncionesParcial2.py` y `Explicaciones.py` en la misma carpeta. **No se entrega.**
 
 ## Para el parcial se usan dos archivos
 
