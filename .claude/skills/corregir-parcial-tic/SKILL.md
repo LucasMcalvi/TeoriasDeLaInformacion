@@ -37,6 +37,8 @@ Respondé en español rioplatense, corto y directo.
 
 ## Formato de la respuesta
 
+**Siempre decile qué hacer para que quede bien.** Para cada ❌, cada ⚠️ y cada inciso que falta, dale la **línea de código exacta** para corregirlo o agregarlo, escrita con SUS nombres de variables y su estilo de import (si escribe `FuncionesParcial2.huffman(...)`, respetalo), lista para copiar en su archivo, y el **valor que le tiene que dar** al correrla. Antes de proponerla, comprobá en el script temporal que esa línea da ese valor. Si el problema es de interpretación (texto), dale la frase corregida.
+
 Una línea por resultado, con el número de línea del archivo:
 
 - `línea 12 · entropia = 1.7884` → **✅ Bien** (1a, entropía H(S)).
@@ -44,7 +46,7 @@ Una línea por resultado, con el número de línea del archivo:
 - `línea 20 · cap = capacidad_binaria(m, 0.0001)` → **⚠️ Bien, pero**: ... (cuando el valor es correcto pero hay algo que aclarar en la respuesta escrita).
 
 Después:
-- **Falta**: incisos que no están, con la función.
+- **Falta**: incisos que no están, cada uno con la línea exacta para agregar y el valor que tiene que dar.
 - **Archivo**: si corre, imports, si sirve para entregar tal cual.
 - **Total**: cuántos bien y cuántos mal.
 
